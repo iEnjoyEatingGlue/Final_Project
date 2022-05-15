@@ -1,14 +1,19 @@
+
 #include <iostream>
-#include <memory>
 #include <vector>
-#include <cmath>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
-class Background: public sf::Sprite
+
+class AnimatedAssets: public sf::Sprite
 {
+private:
+    float Position_x = 0.f;
+    float Speed_x = 0.f;
+    float bound_right = 0.f;
 public:
-    Background(const float x, const float speed, sf::Texture *texture): Position_x(x), Speed_x(speed)
+    // animated background
+    AnimatedAssets(const float x, const float speed, sf::Texture *texture): Position_x(x), Speed_x(speed)
     {
         setTexture(*texture);
         texture->setRepeated(true);
@@ -18,8 +23,6 @@ public:
 
     void animate()
     {
-        /* moves background to the left, and if backgrounds right bound is smaller than windows left bound,
-        background is moved, so that its left bound is bigger than windows right bound, so it will be animated again*/
         auto bound = getGlobalBounds();
         bound_right = bound.left + bound.width;
 
@@ -29,19 +32,43 @@ public:
         }
         move(Speed_x,0);
     }
-private:
-    float Position_x = 0.f;
-    float Speed_x = 0.f;
-    float bound_right = 0.f;
-};
 
-class Bird: public sf::Sprite
+
+
+public:
+    float TopScr,BttScr,LftScr,RgtScr,t_,b_,l_,r_;
+    sf::Vector2f Speed_;        //ALL OBJECTS USE THIS SPEED
+
+    AnimatedAssets(sf::Vector2f size, sf::Vector2f position, sf::Vector2f v)
+    {
+        scale(size);
+        setPosition(position);
+        Speed_=v;
+
+    }
+
+    void ContinousAnimation(const sf::Time &elapsed, const sf::Vector2f &speed)
+    {
+
+        move(speed.x*elapsed.asSeconds(),speed.y*elapsed.asSeconds());  //we apply the movement
+    }
+};
+class Bird: public AnimatedAssets
 {
 public:
-    Bird(const float);
-private:
-};
+    Bird(sf::Vector2f pos, sf::Vector2f speed):
+        AnimatedAssets(sf::Vector2f(0.1,0.1), pos, speed){}
 
+    void Gravity(sf::Time elapsed)
+    {
+
+
+        Speed_.y+=400*elapsed.asSeconds();
+
+    }
+
+
+};
 class Pipe: public sf::Sprite
 {
 public:
@@ -77,22 +104,56 @@ private:
     float bound_left = 0.f;
     float bound_right = 0.f;
 };
-
 int main()
 {
-    //wofcjniasdjipovcnasdjkcns
-    // hey
+    vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
     sf::RenderWindow window(sf::VideoMode(900, 504), "My window");
 
     sf::Texture texture_background;
     if(!texture_background.loadFromFile("background.png")) { return 1; };
-    Background background_1(0,-0.01,&texture_background);
-    Background background_2(900,-0.01,&texture_background);
+    AnimatedAssets background_1(0,-0.01,&texture_background);
+    AnimatedAssets background_2(900,-0.01,&texture_background);
 
-    std::vector<Background> backgrounds;
+    std::vector<AnimatedAssets> backgrounds;
     backgrounds.emplace_back(background_1);
     backgrounds.emplace_back(background_2);
+    sf::Clock clock;
 
+    //creating background
+
+    sf::Texture back_tex;
+    if (!back_tex.loadFromFile("background.png")) {
+        std::cerr << "Could not load texture" << std::endl;
+        return 1;
+    }
+
+    sf::Sprite background;
+    background.setTexture(back_tex);
+    float scalex = (float) window.getSize().x/back_tex.getSize().x;
+    float scaley =(float) window.getSize().y/back_tex.getSize().y;
+    background.setScale(scalex, scaley);
+
+    //PLAYER
+    Bird player(sf::Vector2f(100,window.getSize().y/2),sf::Vector2f(0,0));
+    sf::Texture bird;
+    if (!bird.loadFromFile("bird.png"))
+        std::cerr << "Could not load texture" << std::endl;
+    player.setTexture(bird);
+
+
+
+    sf::Sprite birds;
+
+    //loading pipes
+    sf::Texture pip;
+    if (!pip.loadFromFile("pipe_bot.png")) {
+        std::cerr << "Could not load texture" << std::endl;
+        return 1;
+    }
+    //vector that will contain all the pipes
+    vector<sf::Sprite>pipes;
+
+    //creating pipes
     sf::Texture texture_pipe_top;
     if(!texture_pipe_top.loadFromFile("pipe_top.png")) { return 1; };
     Pipe pipe_top_1(900,0,-150,&texture_pipe_top);
@@ -131,21 +192,51 @@ int main()
     all_pipes.emplace_back(combined_3);
     all_pipes.emplace_back(combined_4);
 
-    sf::Clock clock;
 
+
+    sf:: Event event ;
     while (window.isOpen())
+
     {
+        cout<<"hello world0"<<endl;
         sf::Time elapsed = clock.restart();
+
+        for(auto &s : spritesToDraw)
+            s->ContinousAnimation(elapsed,s->Speed_);
+
+        player.move(0,player.Speed_.y*elapsed.asSeconds());
+        player.Gravity(elapsed);
 
         sf::Event event;
         while (window.pollEvent(event))
         {
+
+            /// "close requested" event: we close the window
             if (event.type == sf::Event::Closed)
                 window.close();
+
+            // close game when esc is pressed
+
+            if(event.type==sf::Event::KeyReleased)
+            {
+                if(event.key.code==sf::Keyboard::Key::Escape)
+                {
+                    window.close();
+                }
+            }
+            // setting the mouse left click as the jumping button
+
+            if(event.type == sf::Event::MouseButtonPressed)
+            {
+                if(event.mouseButton.button == sf::Mouse::Left)
+                {
+                    player.Speed_+=sf::Vector2f(0,-250);
+                }
+
+            }
         }
-
+        // drawing stuff
         window.clear(sf::Color::Black);
-
         for(auto &i: backgrounds)
         {
             i.animate();
@@ -159,10 +250,16 @@ int main()
                 window.draw(a);
             }
         }
+        auto a = pipe_top_1.getGlobalBounds();
 
+
+
+        window.draw(player);
         window.display();
+
     }
+
+    window.clear(sf::Color::Black);
+
+    return 0;
 }
-
-
-
