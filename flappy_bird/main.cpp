@@ -192,7 +192,7 @@ int main()
     all_pipes.emplace_back(combined_4);
 
 
-
+//ascasnCKOPADNCOAK;SNCKL;SAcnasKL;CNKL;ASc
     sf:: Event event ;
     while (window.isOpen())
     {

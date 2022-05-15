@@ -80,6 +80,7 @@ private:
 
 int main()
 {
+    //wofcjniasdjipovcnasdjkcnsda
     sf::RenderWindow window(sf::VideoMode(900, 504), "My window");
 
     sf::Texture texture_background;
@@ -157,7 +158,6 @@ int main()
                 window.draw(a);
             }
         }
-        auto a = pipe_top_1.getGlobalBounds();
 
         window.display();
     }
