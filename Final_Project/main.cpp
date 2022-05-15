@@ -80,7 +80,8 @@ private:
 
 int main()
 {
-    //wofcjniasdjipovcnasdjkcnsda
+    //wofcjniasdjipovcnasdjkcns
+    // hey
     sf::RenderWindow window(sf::VideoMode(900, 504), "My window");
 
     sf::Texture texture_background;
