@@ -82,9 +82,9 @@ class Pipe: public sf::Sprite
 public:
     Pipe(const float x, const float y , const float speed, sf::Texture *texture): Position_x(x), Position_y(y), Speed_x(speed)
     {
-        setTexture(*texture);
-        setPosition(Position_x,Position_y);
-        setTextureRect(sf::IntRect(0, 0, 280, 2000));
+        setTexture(*texture);        
+        setTextureRect(sf::IntRect(0,-400, 280, 2000));
+        setPosition(Position_x,Position_y - 150);
         setScale(0.4f,0.35f);
     }
     void animate(const sf::Time &elapsed)
@@ -101,6 +101,11 @@ public:
         Time = elapsed.asSeconds();
         move(Speed_x*Time,0);
     }
+//    void setPosition(float a, float b)
+//    {
+
+//    }
+
 private:
     float Position_x = 0.f;
     float Position_y = 0.f;
@@ -112,6 +117,20 @@ private:
     float bound_left = 0.f;
     float bound_right = 0.f;
 };
+
+void random(std::vector<Pipe> &vec)
+{
+    int a = rand() % 180 - 90;
+    auto top = vec[0].getGlobalBounds();
+    auto pos_0 = vec[0].getPosition();
+    auto pos_1 = vec[0].getPosition();
+    if(top.left + top.width + 210 <= 0)
+    {
+        vec[0].setPosition(pos_0.x,- 150 + a);
+        vec[1].setPosition(pos_1.x,150 + a);
+    }
+}
+
 int main()
 {
     std::vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
@@ -200,8 +219,6 @@ int main()
     all_pipes.emplace_back(combined_3);
     all_pipes.emplace_back(combined_4);
 
-
-
     sf:: Event event ;
     while (window.isOpen())
 
@@ -252,19 +269,16 @@ int main()
         }
         for(auto &i: all_pipes)
         {
+            random(i);
             for(auto &a: i)
             {
                 a.animate(elapsed);
                 window.draw(a);
             }
         }
-        auto a = pipe_top_1.getGlobalBounds();
-
-
 
         window.draw(player);
         window.display();
-
     }
 
     window.clear(sf::Color::Black);
