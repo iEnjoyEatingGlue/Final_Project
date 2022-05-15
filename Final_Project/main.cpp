@@ -4,6 +4,16 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
+//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
+//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
+//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
+//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
+//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
+//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
+//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
+//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
+
+
 
 class AnimatedAssets: public sf::Sprite
 {
@@ -106,7 +116,7 @@ private:
 };
 int main()
 {
-    vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
+    std::vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
     sf::RenderWindow window(sf::VideoMode(900, 504), "My window");
 
     sf::Texture texture_background;
@@ -151,7 +161,7 @@ int main()
         return 1;
     }
     //vector that will contain all the pipes
-    vector<sf::Sprite>pipes;
+    std::vector<sf::Sprite>pipes;
 
     //creating pipes
     sf::Texture texture_pipe_top;
@@ -198,7 +208,7 @@ int main()
     while (window.isOpen())
 
     {
-        cout<<"hello world0"<<endl;
+        std::cout<<"hello world0"<<std::endl;
         sf::Time elapsed = clock.restart();
 
         for(auto &s : spritesToDraw)
