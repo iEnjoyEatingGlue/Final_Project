@@ -62,7 +62,8 @@ public:
     }
     void acceleration()
     {
-        Speed_.y = 0;
+        if(Speed_.y > 0)
+            Speed_.y = 0;
     }
 };
 
@@ -142,7 +143,7 @@ int main()
     bool space_clicked = false;
 
     std::vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
-    sf::RenderWindow window(sf::VideoMode(900, 504), "My window");
+    sf::RenderWindow window(sf::VideoMode(900, 504), "Flappy bird");
 
     sf::Texture texture_background;
     if(!texture_background.loadFromFile("background.png")) { return 1; };
@@ -174,8 +175,6 @@ int main()
     if (!bird.loadFromFile("bird.png"))
         std::cerr << "Could not load texture" << std::endl;
     player.setTexture(bird);
-
-
 
     sf::Sprite birds;
 
@@ -236,11 +235,27 @@ int main()
     if(!texture_start.loadFromFile("start.png")) { return 1; };
     Start start(&texture_start);
 
+    //creating font
+    sf::Font MyFont;
+    if (!MyFont.loadFromFile("pixel_font.otf"))
+    {
+        std::cout << "nie działa :(";
+    }
+
+    sf::String nauka = "1234";
+    sf::Text text;
+    text.setFont(MyFont);
+    text.setColor(sf::Color(128, 128, 0));
+    text.setRotation(90.f);
+    text.setScale(2.f, 2.f);
+    text.move(100.f, 200.f);
+    text.setString(nauka);
+
+
     sf:: Event event ;
     while (window.isOpen())
 
     {
-        std::cout<<"hello world0"<<std::endl;
         sf::Time elapsed = clock.restart();
 
         for(auto &s : spritesToDraw)
@@ -288,7 +303,6 @@ int main()
                 {
                     player.Speed_+=sf::Vector2f(0,-250);
                 }
-
             }
         }
         // drawing stuff
@@ -316,7 +330,9 @@ int main()
             }
         }
         window.draw(player);
+        window.draw(text);
         window.display();
+
     }
 
     window.clear(sf::Color::Black);
