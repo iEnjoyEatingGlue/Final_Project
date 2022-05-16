@@ -58,12 +58,14 @@ public:
 
     void Gravity(sf::Time elapsed)
     {
-
-
         Speed_.y+=400*elapsed.asSeconds();
-
+    }
+    void acceleration()
+    {
+        Speed_.y = 0;
     }
 };
+
 class Pipe: public sf::Sprite
 {
 public:
@@ -113,18 +115,25 @@ public:
 private:
 };
 
-
+void random_at_start(std::vector<Pipe> &vec)
+{
+    int a = rand() % 240 - 120;
+    auto pos_0 = vec[0].getPosition();
+    auto pos_1 = vec[0].getPosition();
+        vec[0].setPosition(pos_0.x,- 180 + a);
+        vec[1].setPosition(pos_1.x,180 + a);
+}
 
 void random(std::vector<Pipe> &vec)
 {
-    int a = rand() % 180 - 90;
+    int a = rand() % 240 - 120;
     auto top = vec[0].getGlobalBounds();
     auto pos_0 = vec[0].getPosition();
     auto pos_1 = vec[0].getPosition();
     if(top.left + top.width + 210 <= 0)
     {
-        vec[0].setPosition(pos_0.x,- 150 + a);
-        vec[1].setPosition(pos_1.x,150 + a);
+        vec[0].setPosition(pos_0.x,- 180 + a);
+        vec[1].setPosition(pos_1.x,180 + a);
     }
 }
 
@@ -218,6 +227,11 @@ int main()
     all_pipes.emplace_back(combined_3);
     all_pipes.emplace_back(combined_4);
 
+    for(auto &i: all_pipes)
+    {
+        random_at_start(i);
+    }
+
     sf::Texture texture_start;
     if(!texture_start.loadFromFile("start.png")) { return 1; };
     Start start(&texture_start);
@@ -232,8 +246,16 @@ int main()
         for(auto &s : spritesToDraw)
             s->ContinousAnimation(elapsed,s->Speed_);
 
-        player.move(0,player.Speed_.y*elapsed.asSeconds());
-        player.Gravity(elapsed);
+        if(space_clicked == false)
+        {
+            player.move(0,0);
+        }
+        else
+        {
+            player.move(0,player.Speed_.y*elapsed.asSeconds());
+            player.Gravity(elapsed);
+        }
+
 
         sf::Event event;
         while (window.pollEvent(event))
@@ -254,6 +276,7 @@ int main()
                 if(event.key.code==sf::Keyboard::Key::Space)
                 {
                     space_clicked = true;
+                    player.acceleration();
                     player.Speed_+=sf::Vector2f(0,-250);
                 }
             }
