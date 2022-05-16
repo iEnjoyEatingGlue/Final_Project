@@ -1,16 +1,7 @@
-
 #include <iostream>
 #include <vector>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
-
-//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
-//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
-//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
-//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
-//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
-//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcnSLADJKCADkjc
-//acabujhocb adhjcbnsdajkclbnsdJKCLBSDNcnklsbDCLJKSDncjkldSNCKJLsadcnkjldsACNSDAJKLcn
 
 
 class AnimatedAssets: public sf::Sprite
@@ -40,8 +31,6 @@ public:
         }
         move(Speed_x,0);
     }
-
-
 
 public:
     float TopScr,BttScr,LftScr,RgtScr,t_,b_,l_,r_;
@@ -74,8 +63,6 @@ public:
         Speed_.y+=400*elapsed.asSeconds();
 
     }
-
-
 };
 class Pipe: public sf::Sprite
 {
@@ -101,10 +88,6 @@ public:
         Time = elapsed.asSeconds();
         move(Speed_x*Time,0);
     }
-//    void setPosition(float a, float b)
-//    {
-
-//    }
 
 private:
     float Position_x = 0.f;
