@@ -298,18 +298,22 @@ int main()
             i.animate();
             window.draw(i);
         }
-        for(auto &i: all_pipes)
-        {
-            random(i);
-            for(auto &a: i)
-            {
-                a.animate(elapsed);
-                window.draw(a);
-            }
-        }
+
         if(space_clicked == false)
         {
             window.draw(start);
+        }
+        else
+        {
+            for(auto &i: all_pipes)
+            {
+                random(i);
+                for(auto &a: i)
+                {
+                    a.animate(elapsed);
+                    window.draw(a);
+                }
+            }
         }
         window.draw(player);
         window.display();
