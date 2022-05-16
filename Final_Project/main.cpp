@@ -58,9 +58,9 @@ public:
 
     void Gravity(sf::Time elapsed)
     {
-        Speed_.y+=400*elapsed.asSeconds();
+        Speed_.y+=800*elapsed.asSeconds();
     }
-    void acceleration()
+    void stop_gravity()
     {
         if(Speed_.y > 0)
             Speed_.y = 0;
@@ -110,8 +110,8 @@ public:
     Start(sf::Texture *texture)
     {
         setTexture(*texture);
-        setPosition(100,100);
-        setScale(0.3f,0.3f);
+        setPosition(300,125);
+        setScale(0.45f,0.45f);
     }
 private:
 };
@@ -138,9 +138,30 @@ void random(std::vector<Pipe> &vec)
     }
 }
 
+void Points(int *point,std::vector<std::vector<Pipe>> all_pipes)
+{
+    for(auto &i: all_pipes)
+    {
+        for(auto &a: i)
+        {
+            sf::FloatRect a_bounds = a.getGlobalBounds();
+            if(a_bounds.left + a_bounds.width < 100 && a_bounds.left + a_bounds.width > 99)
+            {
+                *point = *point + 1;
+                std::cout << *point << std::endl;
+            }
+            else
+            {
+            }
+        }
+    }
+}
+
 int main()
 {
     bool space_clicked = false;
+    std::string points_s = "0";
+    int point_i = 0;
 
     std::vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
     sf::RenderWindow window(sf::VideoMode(900, 504), "Flappy bird");
@@ -177,6 +198,7 @@ int main()
     player.setTexture(bird);
 
     sf::Sprite birds;
+    player.setPosition(100,200);
 
     //loading pipes
     sf::Texture pip;
@@ -237,25 +259,29 @@ int main()
 
     //creating font
     sf::Font MyFont;
-    if (!MyFont.loadFromFile("pixel_font.otf"))
+    if (!MyFont.loadFromFile("pixel_font.ttf"))
     {
         std::cout << "nie działa :(";
     }
 
-    sf::String nauka = "1234";
     sf::Text text;
     text.setFont(MyFont);
-    text.setColor(sf::Color(128, 128, 0));
-    text.setRotation(90.f);
+    text.setColor(sf::Color::White);
+    text.setOutlineThickness(2);
+    text.setOutlineColor(sf::Color::Black);
     text.setScale(2.f, 2.f);
-    text.move(100.f, 200.f);
-    text.setString(nauka);
+    text.move(20.f, 0.f);
+    text.setString(points_s);
 
 
     sf:: Event event ;
     while (window.isOpen())
 
     {
+
+        Points(&point_i,all_pipes);
+        std::cout << point_i << std::endl;
+        text.setString(points_s);
         sf::Time elapsed = clock.restart();
 
         for(auto &s : spritesToDraw)
@@ -291,8 +317,8 @@ int main()
                 if(event.key.code==sf::Keyboard::Key::Space)
                 {
                     space_clicked = true;
-                    player.acceleration();
-                    player.Speed_+=sf::Vector2f(0,-250);
+                    player.stop_gravity();
+                    player.Speed_+=sf::Vector2f(0,-400);
                 }
             }
             // setting the mouse left click as the jumping button
@@ -332,7 +358,6 @@ int main()
         window.draw(player);
         window.draw(text);
         window.display();
-
     }
 
     window.clear(sf::Color::Black);
