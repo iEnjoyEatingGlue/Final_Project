@@ -101,6 +101,20 @@ private:
     float bound_right = 0.f;
 };
 
+class Start: public sf::Sprite
+{
+public:
+    Start(sf::Texture *texture)
+    {
+        setTexture(*texture);
+        setPosition(100,100);
+        setScale(0.3f,0.3f);
+    }
+private:
+};
+
+
+
 void random(std::vector<Pipe> &vec)
 {
     int a = rand() % 180 - 90;
@@ -116,13 +130,15 @@ void random(std::vector<Pipe> &vec)
 
 int main()
 {
+    bool space_clicked = false;
+
     std::vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
     sf::RenderWindow window(sf::VideoMode(900, 504), "My window");
 
     sf::Texture texture_background;
     if(!texture_background.loadFromFile("background.png")) { return 1; };
-    AnimatedAssets background_1(0,-0.01,&texture_background);
-    AnimatedAssets background_2(900,-0.01,&texture_background);
+    AnimatedAssets background_1(0,-0.02,&texture_background);
+    AnimatedAssets background_2(900,-0.02,&texture_background);
 
     std::vector<AnimatedAssets> backgrounds;
     backgrounds.emplace_back(background_1);
@@ -202,6 +218,10 @@ int main()
     all_pipes.emplace_back(combined_3);
     all_pipes.emplace_back(combined_4);
 
+    sf::Texture texture_start;
+    if(!texture_start.loadFromFile("start.png")) { return 1; };
+    Start start(&texture_start);
+
     sf:: Event event ;
     while (window.isOpen())
 
@@ -259,7 +279,7 @@ int main()
                 window.draw(a);
             }
         }
-
+        window.draw(start);
         window.draw(player);
         window.display();
     }
