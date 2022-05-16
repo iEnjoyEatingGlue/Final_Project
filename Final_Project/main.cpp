@@ -251,6 +251,11 @@ int main()
                 {
                     window.close();
                 }
+                if(event.key.code==sf::Keyboard::Key::Space)
+                {
+                    space_clicked = true;
+                    player.Speed_+=sf::Vector2f(0,-250);
+                }
             }
             // setting the mouse left click as the jumping button
 
@@ -279,7 +284,10 @@ int main()
                 window.draw(a);
             }
         }
-        window.draw(start);
+        if(space_clicked == false)
+        {
+            window.draw(start);
+        }
         window.draw(player);
         window.display();
     }
