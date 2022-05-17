@@ -103,19 +103,23 @@ public:
         bound_right = bound.left + bound.width;
         if(bound_right + 210 <= 0)
         {
-            crossed_changer();
+            crossed = false;
             move(1210,0);
         }
         move(Speed_x*Time,0);
     }
-    void crossed_changer()
+    void Set_crossed_false()
     {
-        crossed = !crossed;
+        crossed = false;
     }
 
     bool crossed_return()
     {
         return crossed;
+    }
+    void Set_crossed_true()
+    {
+        crossed = true;
     }
     void Move_back()
     {
@@ -194,11 +198,12 @@ void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
         for(auto &a: i)
         {
             sf::FloatRect a_bounds = a.getGlobalBounds();
-            if(a_bounds.left + a_bounds.width < 100 && a.crossed_return() == false)
+            if(a_bounds.left + a_bounds.width < 100.0 && a.crossed_return() == false)
             {
+                std::cout << "works 3" << std::endl;
                 *point = *point + 1;
-                a.crossed_changer();
                 std::cout << *point << std::endl;
+                a.Set_crossed_true();
             }
             else
             {
@@ -374,8 +379,12 @@ int main()
         sf::Vector2i position = sf::Mouse::getPosition(window);
 
         Points(&point_i,all_pipes);
+        if(point_i % 2 != 0 && point_i != 1)
+        {
+            point_i = point_i + 1;
+        }
         points_s = std::to_string(point_i/2);
-        if(point_i > high_i)
+        if(point_i > high_i && lost == false)
         {
             high_i = point_i;
         }
@@ -397,6 +406,10 @@ int main()
             {
                 text.setString("0");
                 text_2.setString("0");
+            }
+            if(point_i == 1)
+            {
+                text.setString("1");
             }
             else
             {
@@ -442,6 +455,7 @@ int main()
                     {
                         for(auto &a: i)
                         {
+                            a.Set_crossed_false();
                             a.Move_back();
                         }
                     }
@@ -469,6 +483,7 @@ int main()
             {
                 for(auto &a: i)
                 {
+                    a.Set_crossed_false();
                     window.draw(a);
                 }
             }
