@@ -54,7 +54,7 @@ class Bird: public AnimatedAssets
 {
 public:
     Bird(sf::Vector2f pos, sf::Vector2f speed):
-        AnimatedAssets(sf::Vector2f(0.1,0.1), pos, speed){}
+        AnimatedAssets(sf::Vector2f(1,1), pos, speed){}
 
     void Gravity(sf::Time elapsed)
     {
@@ -73,15 +73,13 @@ public:
     Pipe(const float x, const float y , const float speed, sf::Texture *texture): Position_x(x), Position_y(y), Speed_x(speed)
     {
         setTexture(*texture);        
-        setTextureRect(sf::IntRect(0,-400, 280, 2000));
-        setPosition(Position_x,Position_y - 150);
+        setPosition(Position_x,Position_y);
         setScale(0.4f,0.35f);
     }
     void animate(float Time)
     {
         /* moves pipe to the left, and if pipes right bound is smaller than windows left bound,
         pipe is moved, so that its left bound is bigger than windows right bound, so it will be animated again*/
-
         auto bound = getGlobalBounds();
         bound_right = bound.left + bound.width;
         if(bound_right + 210 <= 0)
@@ -116,27 +114,32 @@ private:
     bool crossed = false;
 };
 
-class Start: public sf::Sprite
+class Start_End: public sf::Sprite
 {
 public:
-    Start(sf::Texture *texture)
+    Start_End(sf::Texture *texture,float x_pos, float y_pos, float x_scale, float y_scale):X_pos(x_pos), Y_pos(y_pos), X_scale(x_scale),Y_scale(y_scale)
     {
         setTexture(*texture);
-        setPosition(300,125);
-        setScale(0.45f,0.45f);
+        setPosition(X_pos,Y_pos);
+        setScale(X_scale,Y_scale);
     }
 private:
+    float X_pos = 0;
+    float Y_pos = 0;
+    float X_scale = 0;
+    float Y_scale = 0;
 };
-
+//randomises localisation of gaps between pipes at start
 void random_at_start(std::vector<Pipe> &vec)
 {
-    int a = rand() % 240 - 120;
+    int a = rand() % 260 - 130;
     auto pos_0 = vec[0].getPosition();
     auto pos_1 = vec[0].getPosition();
-        vec[0].setPosition(pos_0.x,- 180 + a);
-        vec[1].setPosition(pos_1.x,180 + a);
+        vec[0].setPosition(pos_0.x,-10+ a);
+        vec[1].setPosition(pos_1.x,330+ a);
 }
 
+//randomises localisation of gaps between pipes after every relocation to the right
 void random(std::vector<Pipe> &vec)
 {
     int a = rand() % 260 - 130;
@@ -145,11 +148,11 @@ void random(std::vector<Pipe> &vec)
     auto pos_1 = vec[0].getPosition();
     if(top.left + top.width + 210 <= 0)
     {
-        vec[0].setPosition(pos_0.x,- 180 + a);
-        vec[1].setPosition(pos_1.x,180 + a);
+        vec[0].setPosition(pos_0.x,-10 + a);
+        vec[1].setPosition(pos_1.x,330 + a);
     }
 }
-
+// updates point_i variable from main after pipe crosses player
 void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
 {
     for(auto &i: all_pipes)
@@ -169,10 +172,26 @@ void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
         }
     }
 }
+bool Intersectcion(Pipe pipe,Bird player)
+{
+    bool x = false;
+
+    auto player_bounds = player.getGlobalBounds();
+    auto pipe_bounds = pipe.getGlobalBounds();
+    if(player_bounds.intersects(pipe_bounds))
+    {
+        std::cout << player_bounds.top << " " << pipe_bounds.top << std::endl;
+        x = true;
+    }
+    else
+    {
+        x = false;
+    }
+    return x;
+}
 
 int main()
 {
-    float dt = 0;
     bool space_clicked = false;
     std::string points_s = "0";
     int point_i = 0;
@@ -269,7 +288,11 @@ int main()
 
     sf::Texture texture_start;
     if(!texture_start.loadFromFile("start.png")) { return 1; };
-    Start start(&texture_start);
+    Start_End start(&texture_start,250,100,0.60,0.60);
+
+    sf::Texture texture_end;
+    if(!texture_end.loadFromFile("end.png")) { return 1; };
+    Start_End end(&texture_end,250,50,1,1);
 
     //creating font
     sf::Font MyFont;
@@ -277,7 +300,7 @@ int main()
     {
         std::cout << "nie działa :(";
     }
-
+    //Point font
     sf::Text text;
     text.setFont(MyFont);
     text.setOutlineThickness(2);
@@ -287,14 +310,12 @@ int main()
     text.setString(points_s);
 
     while (window.isOpen())
-
     {
-
+        //Points counter
         Points(&point_i,all_pipes);
         sf::Time elapsed = clock.restart();
         float time = elapsed.asSeconds();
         points_s = std::to_string(point_i/2);
-
 
         for(auto &s : spritesToDraw)
             s->ContinousAnimation(elapsed,s->Speed_);
@@ -306,8 +327,6 @@ int main()
         }
         else
         {
-//            dt = dt + time;
-//            point_i = dt/2.f - 2;
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Gravity(elapsed);
             if(point_i < 0)
@@ -320,7 +339,6 @@ int main()
             }
         }
 
-
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -330,7 +348,6 @@ int main()
                 window.close();
 
             // close game when esc is pressed
-
             if(event.type==sf::Event::KeyReleased)
             {
                 if(event.key.code==sf::Keyboard::Key::Escape)
@@ -344,8 +361,7 @@ int main()
                     player.Speed_+=sf::Vector2f(0,-400);
                 }
             }
-            // setting the mouse left click as the jumping button
-
+            // setting the space as the jumping button
             if(event.type == sf::Event::MouseButtonPressed)
             {
                 if(event.mouseButton.button == sf::Mouse::Left)
@@ -361,6 +377,7 @@ int main()
             i.animate();
             window.draw(i);
         }
+
 
         if(space_clicked == false)
         {
@@ -378,12 +395,20 @@ int main()
                 }
             }
         }
+
+
+        for(auto &i: all_pipes)
+        {
+            for(auto &a: i)
+            {
+                if(Intersectcion(a,player) == true)
+                    window.draw(end);
+            }
+        }
         window.draw(player);
         window.draw(text);
         window.display();
     }
-
-    window.clear(sf::Color::Black);
 
     return 0;
 }
