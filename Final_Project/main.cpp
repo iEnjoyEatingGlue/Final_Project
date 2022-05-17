@@ -64,7 +64,7 @@ public:
         setPosition(pos_x,pos_y);
     }
 
-    void Gravity(float time)      // Gravity
+    void Gravity(float time)    //// Gravity
     {
         Speed_.y+=800*time;
     }
@@ -104,19 +104,23 @@ public:
         bound_right = bound.left + bound.width;
         if(bound_right + 210 <= 0)
         {
-            crossed_changer();
+            crossed = false;
             move(1210,0);
         }
         move(Speed_x*Time,0);
     }
-    void crossed_changer()
+    void Set_crossed_false()
     {
-        crossed = !crossed;
+        crossed = false;
     }
 
     bool crossed_return()
     {
         return crossed;
+    }
+    void Set_crossed_true()
+    {
+        crossed = true;
     }
     void Move_back()
     {
@@ -195,11 +199,12 @@ void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
         for(auto &a: i)
         {
             sf::FloatRect a_bounds = a.getGlobalBounds();
-            if(a_bounds.left + a_bounds.width < 100 && a.crossed_return() == false)
+            if(a_bounds.left + a_bounds.width < 100.0 && a.crossed_return() == false)
             {
+                std::cout << "works 3" << std::endl;
                 *point = *point + 1;
-                a.crossed_changer();
                 std::cout << *point << std::endl;
+                a.Set_crossed_true();
             }
             else
             {
@@ -208,7 +213,7 @@ void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
     }
 }
 
-// checks if player intersects with pipes
+// checks if player intersects with piepes
 bool Intersectcion(Pipe pipe,Bird player)
 {
     bool x = false;
@@ -229,7 +234,7 @@ bool Intersectcion(Pipe pipe,Bird player)
     }
     return x;
 }
-bool playMusicForFiveSeconds(){
+bool playMusicForFiveSeconds(){       // if i want to play a music for 5 seconds
     sf::Music music;
     if (!music.openFromFile("file_example_OOG_1MG.ogg"))
         return false;
@@ -249,11 +254,10 @@ int main()
     std::string high_s = "0";
     int high_i = 0;
     int point_i = 0;
-        //creating window
+
     std::vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
     sf::RenderWindow window(sf::VideoMode(900, 504), "Flappy bird");
 
-    // creating background
     sf::Texture texture_background;
     if(!texture_background.loadFromFile("background.png")) { return 1; };
     AnimatedAssets background_1(0,-0.02,&texture_background);
@@ -267,16 +271,26 @@ int main()
     //creating background
     sf::Music music ;
     sf::SoundBuffer buffer;
-    if (!buffer.loadFromFile("mixkit-player-jumping-in-a-video-game-2043.wav"))
+    if (!buffer.loadFromFile("mixkit-player-jumping-in-a-video-game-2043.wav"))    // loading jumping sound effect
         std::cerr << "Could not load audio" << std::endl;
     sf::Sound sound;
     sound.setBuffer(buffer);
-    if(!music.openFromFile("file_example_OOG_1MG.ogg"))
+    if(!music.openFromFile("file_example_OOG_1MG.ogg"))       // loading background music
         std::cerr << "Could not load audio" << std::endl;
-    music.setVolume(50);
+    music.setVolume(50);   //setting volume and playing music
+    music.play();
 
+    sf::Texture back_tex;
+    if (!back_tex.loadFromFile("background.png")) {
+        std::cerr << "Could not load texture" << std::endl;
+        return 1;
+    }
 
-
+    sf::Sprite background;
+    background.setTexture(back_tex);
+    float scalex = (float) window.getSize().x/back_tex.getSize().x;
+    float scaley =(float) window.getSize().y/back_tex.getSize().y;
+    background.setScale(scalex, scaley);
 
     //PLAYER
     Bird player(sf::Vector2f(100,window.getSize().y/2),sf::Vector2f(0,0));
@@ -328,7 +342,7 @@ int main()
     combined_4.emplace_back(pipe_top_4);
     combined_4.emplace_back(pipe_bot_4);
 
-    std::vector<std::vector<Pipe>> all_pipes;     //vector that combines all the pipes
+    std::vector<std::vector<Pipe>> all_pipes;   // vector that will contain all the pipes
 
     all_pipes.emplace_back(combined_1);
     all_pipes.emplace_back(combined_2);
@@ -340,7 +354,7 @@ int main()
         random_at_start(i);
     }
 
-    //press sapce, restart and game over sprites
+    //press space, restart and game over sprites
     sf::Texture texture_start;
     if(!texture_start.loadFromFile("start.png")) { return 1; };
     Start_End start(&texture_start,250,100,0.60,0.60);
@@ -374,8 +388,12 @@ int main()
     text_2.setOutlineColor(sf::Color::Black);
     text_2.setScale(2.f, 2.f);
     text_2.move(450.f, 0.f);
+
     text_2.setString("High score  " + high_s);
     music.play();
+
+    text_2.setString("High score " + high_s);
+
 
     while (window.isOpen())
     {
@@ -386,8 +404,12 @@ int main()
         sf::Vector2i position = sf::Mouse::getPosition(window);
 
         Points(&point_i,all_pipes);
+        if(point_i % 2 != 0 && point_i != 1)
+        {
+            point_i = point_i + 1;
+        }
         points_s = std::to_string(point_i/2);
-        if(point_i > high_i)
+        if(point_i > high_i && lost == false)
         {
             high_i = point_i;
         }
@@ -396,7 +418,7 @@ int main()
         for(auto &s : spritesToDraw)
             s->ContinousAnimation(elapsed,s->Speed_);
 
-        if(space_clicked == false)  //not starting the game until you press space
+        if(space_clicked == false)    //not starting the game until you press space
         {
 
             player.move(0,0);
@@ -405,10 +427,14 @@ int main()
         {
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Gravity(time);
-            if(point_i < 0)                            //highscore Counter
+            if(point_i < 0)
             {
                 text.setString("0");
                 text_2.setString("0");
+            }
+            if(point_i == 1)
+            {
+                text.setString("1");
             }
             else
             {
@@ -441,7 +467,7 @@ int main()
                 }
             }
             // resets game state
-            if(event.type == sf::Event::MouseButtonPressed)    // Restarting the game by pressing on restart
+            if(event.type == sf::Event::MouseButtonPressed)      //// Restarting the game by pressing on restart
             {
                 if(event.mouseButton.button == sf::Mouse::Left && restart.isClicked(position) == true)
                 {
@@ -456,6 +482,7 @@ int main()
                     {
                         for(auto &a: i)
                         {
+                            a.Set_crossed_false();
                             a.Move_back();
                         }
                     }
@@ -464,18 +491,18 @@ int main()
         }
         // drawing stuff
         window.clear(sf::Color::Black);
-        for(auto &i: backgrounds)       // background animations
+        for(auto &i: backgrounds)       //// background animations
         {
             i.animate();
             window.draw(i);
         }
 
 
-        if(space_clicked == false)     // drawing press space to start
+        if(space_clicked == false)   // drawing press space to start
         {
             window.draw(start);
         }
-        else if(lost == true)         // options after losing
+        else if(lost == true)        //// options after losing
         {
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Falling(70,time);
@@ -483,6 +510,7 @@ int main()
             {
                 for(auto &a: i)
                 {
+                    a.Set_crossed_false();
                     window.draw(a);
                 }
             }
@@ -491,7 +519,7 @@ int main()
         }
         else
         {
-            for(auto &i: all_pipes)      // randomizing the pipes
+            for(auto &i: all_pipes)      //// randomizing the pipes
             {
                 random(i);
                 for(auto &a: i)
@@ -503,7 +531,7 @@ int main()
         }
 
 
-        for(auto &i: all_pipes)      // collision for pipes
+        for(auto &i: all_pipes)        //// collision for pipes
         {
             for(auto &a: i)
             {
@@ -513,12 +541,11 @@ int main()
                 }
             }
         }
-//        if(event.key.code==sf::Keyboard::Key::Space&& lost == false){
-//            if(sound.play())
-//                return 0 ;
-//            else
-//            sound.play();
-        //playMusicForFiveSeconds();
+        if(event.key.code==sf::Keyboard::Key::Space&& lost == false){       //sound effect when jumping
+
+            sound.play();
+        }
+
 
 
 
@@ -531,6 +558,5 @@ int main()
         window.display();
 
     }
-
     return 0;
 }
