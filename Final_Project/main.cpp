@@ -91,7 +91,7 @@ class Pipe: public sf::Sprite
 public:
     Pipe(const float x, const float y , const float speed, sf::Texture *texture): Position_x(x), Position_y(y), Speed_x(speed)
     {
-        setTexture(*texture);        
+        setTexture(*texture);
         setPosition(Position_x,Position_y);
         setScale(0.4f,0.35f);
     }
@@ -103,19 +103,23 @@ public:
         bound_right = bound.left + bound.width;
         if(bound_right + 210 <= 0)
         {
-            crossed_changer();
+            crossed = false;
             move(1210,0);
         }
         move(Speed_x*Time,0);
     }
-    void crossed_changer()
+    void Set_crossed_false()
     {
-        crossed = !crossed;
+        crossed = false;
     }
 
     bool crossed_return()
     {
         return crossed;
+    }
+    void Set_crossed_true()
+    {
+        crossed = true;
     }
     void Move_back()
     {
@@ -194,11 +198,13 @@ void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
         for(auto &a: i)
         {
             sf::FloatRect a_bounds = a.getGlobalBounds();
-            if(a_bounds.left + a_bounds.width < 100 && a.crossed_return() == false)
+            if(a_bounds.left + a_bounds.width < 100.0 && a.crossed_return() == false)
             {
+                std::cout << "works 3" << std::endl;
                 *point = *point + 1;
-                a.crossed_changer();
                 std::cout << *point << std::endl;
+                a.Set_crossed_true();
+                break;
             }
             else
             {
@@ -231,7 +237,7 @@ bool Intersectcion(Pipe pipe,Bird player)
 
 
 int main()
-{    
+{
     bool space_clicked = false;
     bool lost = false;
     std::string points_s = "0";
@@ -320,7 +326,7 @@ int main()
         random_at_start(i);
     }
 
-    //press sapce, restart and game over sprites
+    //press space, restart and game over sprites
     sf::Texture texture_start;
     if(!texture_start.loadFromFile("start.png")) { return 1; };
     Start_End start(&texture_start,250,100,0.60,0.60);
@@ -354,7 +360,7 @@ int main()
     text_2.setOutlineColor(sf::Color::Black);
     text_2.setScale(2.f, 2.f);
     text_2.move(450.f, 0.f);
-    text_2.setString("High score  " + high_s);
+    text_2.setString("High score " + high_s);
 
     while (window.isOpen())
     {
@@ -366,7 +372,7 @@ int main()
 
         Points(&point_i,all_pipes);
         points_s = std::to_string(point_i/2);
-        if(point_i > high_i)
+        if(point_i > high_i && lost == false)
         {
             high_i = point_i;
         }
@@ -388,6 +394,10 @@ int main()
             {
                 text.setString("0");
                 text_2.setString("0");
+            }
+            if(point_i == 1)
+            {
+                text.setString("1");
             }
             else
             {
@@ -461,6 +471,7 @@ int main()
             {
                 for(auto &a: i)
                 {
+                    a.Set_crossed_false();
                     window.draw(a);
                 }
             }
@@ -496,6 +507,5 @@ int main()
         window.draw(text_2);
         window.display();
     }
-
     return 0;
 }
