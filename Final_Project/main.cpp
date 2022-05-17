@@ -58,6 +58,10 @@ public:
     {
         setScale(2,2);
     }
+    void Set_Position(int pos_x, int pos_y)
+    {
+        setPosition(pos_x,pos_y);
+    }
 
     void Gravity(float time)
     {
@@ -68,11 +72,15 @@ public:
         if(Speed_.y > 0)
             Speed_.y = 0;
     }
-    void Falling(float time)
+    void Falling(float rot,float time)
     {
         dt = dt + time;
         Gravity(time);
-        setRotation(70*dt);
+        setRotation(rot*dt);
+    }
+    void Dt_reset()
+    {
+        dt = 0;
     }
 private:
     float dt = 0;
@@ -100,7 +108,6 @@ public:
         }
         move(Speed_x*Time,0);
     }
-
     void crossed_changer()
     {
         crossed = !crossed;
@@ -109,6 +116,11 @@ public:
     bool crossed_return()
     {
         return crossed;
+    }
+    void Move_back()
+    {
+        auto pos = getPosition();
+        setPosition(Position_x ,pos.y);
     }
 
 private:
@@ -133,6 +145,17 @@ public:
         setTexture(*texture);
         setPosition(X_pos,Y_pos);
         setScale(X_scale,Y_scale);
+    }
+    bool isClicked(sf::Vector2i &mouse_position) const
+    {
+        bool a = false;
+        sf::FloatRect rectangle_bounds = getGlobalBounds();
+            if(rectangle_bounds.top < mouse_position.y && mouse_position.y < rectangle_bounds.top + rectangle_bounds.height
+                    && rectangle_bounds.left < mouse_position.x && mouse_position.x < rectangle_bounds.left + rectangle_bounds.width)
+            {
+                a = true;
+            }
+        return (a);
     }
 private:
     float X_pos = 0;
@@ -183,6 +206,8 @@ void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
         }
     }
 }
+
+// checks if player intersects with piepes
 bool Intersectcion(Pipe pipe,Bird player)
 {
     bool x = false;
@@ -191,8 +216,11 @@ bool Intersectcion(Pipe pipe,Bird player)
     auto pipe_bounds = pipe.getGlobalBounds();
     if(player_bounds.intersects(pipe_bounds))
     {
-        std::cout << player_bounds.top << " " << pipe_bounds.top << std::endl;
         x = true;
+    }
+    else if(player_bounds.top <= 0 || player_bounds.top + player_bounds.height >= 900)
+    {
+       x = true;
     }
     else
     {
@@ -201,11 +229,14 @@ bool Intersectcion(Pipe pipe,Bird player)
     return x;
 }
 
+
 int main()
 {    
     bool space_clicked = false;
     bool lost = false;
     std::string points_s = "0";
+    std::string high_s = "0";
+    int high_i = 0;
     int point_i = 0;
 
     std::vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
@@ -304,11 +335,11 @@ int main()
 
     sf::Texture texture_end;
     if(!texture_end.loadFromFile("end.png")) { return 1; };
-    Start_End end(&texture_end,250,50,1,1);
+    Start_End end(&texture_end,250,50,0.8,0.8);
 
     sf::Texture texture_restart;
     if(!texture_restart.loadFromFile("restart.png")) { return 1; };
-    Start_End restart(&texture_restart,50,50,0.3,0.3);
+    Start_End restart(&texture_restart,50,100,0.2,0.2);
 
     //creating font
     sf::Font MyFont;
@@ -325,13 +356,29 @@ int main()
     text.move(20.f, 0.f);
     text.setString(points_s);
 
+    sf::Text text_2;
+    text_2.setFont(MyFont);
+    text_2.setOutlineThickness(2);
+    text_2.setOutlineColor(sf::Color::Black);
+    text_2.setScale(2.f, 2.f);
+    text_2.move(400.f, 0.f);
+    text_2.setString("High score " + high_s);
+
     while (window.isOpen())
     {
         //Points counter
-        Points(&point_i,all_pipes);
         sf::Time elapsed = clock.restart();
         float time = elapsed.asSeconds();
+
+        sf::Vector2i position = sf::Mouse::getPosition(window);
+
+        Points(&point_i,all_pipes);
         points_s = std::to_string(point_i/2);
+        if(point_i > high_i)
+        {
+            high_i = point_i;
+        }
+        high_s = std::to_string(high_i/2);
 
         for(auto &s : spritesToDraw)
             s->ContinousAnimation(elapsed,s->Speed_);
@@ -348,10 +395,12 @@ int main()
             if(point_i < 0)
             {
                 text.setString("0");
+                text_2.setString("0");
             }
             else
             {
                 text.setString(points_s);
+                text_2.setString("High score " + high_s);
             }
         }
 
@@ -380,9 +429,22 @@ int main()
             // setting the space as the jumping button
             if(event.type == sf::Event::MouseButtonPressed)
             {
-                if(event.mouseButton.button == sf::Mouse::Left)
+                if(event.mouseButton.button == sf::Mouse::Left && restart.isClicked(position) == true)
                 {
-                    player.Speed_+=sf::Vector2f(0,-250);
+                    lost = false;
+                    space_clicked = false;
+                    player.setPosition(100,200);
+                    player.stop_gravity();
+                    player.Falling(0,time);
+                    player.Dt_reset();
+                    point_i = 0;
+                    for(auto &i: all_pipes)
+                    {
+                        for(auto &a: i)
+                        {
+                            a.Move_back();
+                        }
+                    }
                 }
             }
         }
@@ -402,7 +464,7 @@ int main()
         else if(lost == true)
         {
             player.move(0,player.Speed_.y*elapsed.asSeconds());
-            player.Falling(time);
+            player.Falling(70,time);
             for(auto &i: all_pipes)
             {
                 for(auto &a: i)
@@ -439,6 +501,7 @@ int main()
         }
         window.draw(player);
         window.draw(text);
+        window.draw(text_2);
         window.display();
     }
 
