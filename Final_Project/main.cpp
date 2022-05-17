@@ -54,17 +54,28 @@ class Bird: public AnimatedAssets
 {
 public:
     Bird(sf::Vector2f pos, sf::Vector2f speed):
-        AnimatedAssets(sf::Vector2f(1,1), pos, speed){}
-
-    void Gravity(sf::Time elapsed)
+        AnimatedAssets(sf::Vector2f(1,1), pos, speed)
     {
-        Speed_.y+=800*elapsed.asSeconds();
+        setScale(2,2);
+    }
+
+    void Gravity(float time)
+    {
+        Speed_.y+=800*time;
     }
     void stop_gravity()
     {
         if(Speed_.y > 0)
             Speed_.y = 0;
     }
+    void Falling(float time)
+    {
+        dt = dt + time;
+        Gravity(time);
+        setRotation(70*dt);
+    }
+private:
+    float dt = 0;
 };
 
 class Pipe: public sf::Sprite
@@ -132,23 +143,23 @@ private:
 //randomises localisation of gaps between pipes at start
 void random_at_start(std::vector<Pipe> &vec)
 {
-    int a = rand() % 260 - 130;
+    int a = rand() % 240 - 120;
     auto pos_0 = vec[0].getPosition();
     auto pos_1 = vec[0].getPosition();
-        vec[0].setPosition(pos_0.x,-10+ a);
+        vec[0].setPosition(pos_0.x,-330+ a);
         vec[1].setPosition(pos_1.x,330+ a);
 }
 
 //randomises localisation of gaps between pipes after every relocation to the right
 void random(std::vector<Pipe> &vec)
 {
-    int a = rand() % 260 - 130;
+    int a = rand() % 240 - 120;
     auto top = vec[0].getGlobalBounds();
     auto pos_0 = vec[0].getPosition();
     auto pos_1 = vec[0].getPosition();
     if(top.left + top.width + 210 <= 0)
     {
-        vec[0].setPosition(pos_0.x,-10 + a);
+        vec[0].setPosition(pos_0.x,-330 + a);
         vec[1].setPosition(pos_1.x,330 + a);
     }
 }
@@ -191,8 +202,9 @@ bool Intersectcion(Pipe pipe,Bird player)
 }
 
 int main()
-{
+{    
     bool space_clicked = false;
+    bool lost = false;
     std::string points_s = "0";
     int point_i = 0;
 
@@ -244,18 +256,18 @@ int main()
 
     //creating pipes
     sf::Texture texture_pipe_top;
-    if(!texture_pipe_top.loadFromFile("pipe_top.png")) { return 1; };
-    Pipe pipe_top_1(900,0,-150,&texture_pipe_top);
-    Pipe pipe_top_2(1200,0,-150,&texture_pipe_top);
-    Pipe pipe_top_3(1500,0,-150,&texture_pipe_top);
-    Pipe pipe_top_4(1800,0,-150,&texture_pipe_top);
+    if(!texture_pipe_top.loadFromFile("pipe_top_test.png")) { return 1; };
+    Pipe pipe_top_1(900,-3000,-150,&texture_pipe_top);
+    Pipe pipe_top_2(1200,-3000,-150,&texture_pipe_top);
+    Pipe pipe_top_3(1500,-3000,-150,&texture_pipe_top);
+    Pipe pipe_top_4(1800,-3000,-150,&texture_pipe_top);
 
     sf::Texture texture_pipe_bot;
-    if(!texture_pipe_bot.loadFromFile("pipe_bot.png")) { return 1; };
-    Pipe pipe_bot_1(900,300,-150,&texture_pipe_bot);
-    Pipe pipe_bot_2(1200,300,-150,&texture_pipe_bot);
-    Pipe pipe_bot_3(1500,300,-150,&texture_pipe_bot);
-    Pipe pipe_bot_4(1800,300,-150,&texture_pipe_bot);
+    if(!texture_pipe_bot.loadFromFile("pipe_bot_test.png")) { return 1; };
+    Pipe pipe_bot_1(900,1200,-150,&texture_pipe_bot);
+    Pipe pipe_bot_2(1200,1200,-150,&texture_pipe_bot);
+    Pipe pipe_bot_3(1500,1200,-150,&texture_pipe_bot);
+    Pipe pipe_bot_4(1800,1200,-150,&texture_pipe_bot);
 
     std::vector<Pipe> combined_1;
     std::vector<Pipe> combined_2;
@@ -294,6 +306,10 @@ int main()
     if(!texture_end.loadFromFile("end.png")) { return 1; };
     Start_End end(&texture_end,250,50,1,1);
 
+    sf::Texture texture_restart;
+    if(!texture_restart.loadFromFile("restart.png")) { return 1; };
+    Start_End restart(&texture_restart,50,50,0.3,0.3);
+
     //creating font
     sf::Font MyFont;
     if (!MyFont.loadFromFile("pixel_font.ttf"))
@@ -325,10 +341,10 @@ int main()
 
             player.move(0,0);
         }
-        else
+        else if(lost == false)
         {
             player.move(0,player.Speed_.y*elapsed.asSeconds());
-            player.Gravity(elapsed);
+            player.Gravity(time);
             if(point_i < 0)
             {
                 text.setString("0");
@@ -354,11 +370,11 @@ int main()
                 {
                     window.close();
                 }
-                if(event.key.code==sf::Keyboard::Key::Space)
+                if(event.key.code==sf::Keyboard::Key::Space && lost == false)
                 {
                     space_clicked = true;
                     player.stop_gravity();
-                    player.Speed_+=sf::Vector2f(0,-400);
+                    player.Speed_+=sf::Vector2f(0,-350);
                 }
             }
             // setting the space as the jumping button
@@ -383,6 +399,20 @@ int main()
         {
             window.draw(start);
         }
+        else if(lost == true)
+        {
+            player.move(0,player.Speed_.y*elapsed.asSeconds());
+            player.Falling(time);
+            for(auto &i: all_pipes)
+            {
+                for(auto &a: i)
+                {
+                    window.draw(a);
+                }
+            }
+            window.draw(restart);
+            window.draw(end);
+        }
         else
         {
             for(auto &i: all_pipes)
@@ -402,7 +432,9 @@ int main()
             for(auto &a: i)
             {
                 if(Intersectcion(a,player) == true)
-                    window.draw(end);
+                {
+                    lost = true;
+                }
             }
         }
         window.draw(player);
