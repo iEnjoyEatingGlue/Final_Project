@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <SFML/Audio.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
@@ -33,7 +34,7 @@ public:
     }
 
 public:
-    float TopScr,BttScr,LftScr,RgtScr,t_,b_,l_,r_;
+
     sf::Vector2f Speed_;        //ALL OBJECTS USE THIS SPEED
 
     AnimatedAssets(sf::Vector2f size, sf::Vector2f position, sf::Vector2f v)
@@ -91,7 +92,7 @@ class Pipe: public sf::Sprite
 public:
     Pipe(const float x, const float y , const float speed, sf::Texture *texture): Position_x(x), Position_y(y), Speed_x(speed)
     {
-        setTexture(*texture);        
+        setTexture(*texture);
         setPosition(Position_x,Position_y);
         setScale(0.4f,0.35f);
     }
@@ -150,11 +151,11 @@ public:
     {
         bool a = false;
         sf::FloatRect rectangle_bounds = getGlobalBounds();
-            if(rectangle_bounds.top < mouse_position.y && mouse_position.y < rectangle_bounds.top + rectangle_bounds.height
-                    && rectangle_bounds.left < mouse_position.x && mouse_position.x < rectangle_bounds.left + rectangle_bounds.width)
-            {
-                a = true;
-            }
+        if(rectangle_bounds.top < mouse_position.y && mouse_position.y < rectangle_bounds.top + rectangle_bounds.height
+            && rectangle_bounds.left < mouse_position.x && mouse_position.x < rectangle_bounds.left + rectangle_bounds.width)
+        {
+            a = true;
+        }
         return (a);
     }
 private:
@@ -169,8 +170,8 @@ void random_at_start(std::vector<Pipe> &vec)
     int a = rand() % 240 - 120;
     auto pos_0 = vec[0].getPosition();
     auto pos_1 = vec[0].getPosition();
-        vec[0].setPosition(pos_0.x,-330+ a);
-        vec[1].setPosition(pos_1.x,330+ a);
+    vec[0].setPosition(pos_0.x,-330+ a);
+    vec[1].setPosition(pos_1.x,330+ a);
 }
 
 //randomises localisation of gaps between pipes after every relocation to the right
@@ -220,7 +221,7 @@ bool Intersectcion(Pipe pipe,Bird player)
     }
     else if(player_bounds.top <= 0 || player_bounds.top + player_bounds.height >= 900)
     {
-       x = true;
+        x = true;
     }
     else
     {
@@ -228,10 +229,20 @@ bool Intersectcion(Pipe pipe,Bird player)
     }
     return x;
 }
+bool playMusicForFiveSeconds(){
+    sf::Music music;
+    if (!music.openFromFile("file_example_OOG_1MG.ogg"))
+        return false;
+    music.setVolume(50);
+    music.play();
+    sf::sleep(sf::seconds(5.0f));
+    return true;
+    // since music is a local variable, it is destroyed here (thus stopping playback)
+}
 
 
 int main()
-{    
+{
     bool space_clicked = false;
     bool lost = false;
     std::string points_s = "0";
@@ -254,6 +265,15 @@ int main()
     sf::Clock clock;
 
     //creating background
+    sf::Music music ;
+    sf::SoundBuffer buffer;
+    if (!buffer.loadFromFile("mixkit-player-jumping-in-a-video-game-2043.wav"))
+        std::cerr << "Could not load audio" << std::endl;
+    sf::Sound sound;
+    sound.setBuffer(buffer);
+    if(!music.openFromFile("file_example_OOG_1MG.ogg"))
+        std::cerr << "Could not load audio" << std::endl;
+    music.setVolume(50);
 
 
 
@@ -355,6 +375,7 @@ int main()
     text_2.setScale(2.f, 2.f);
     text_2.move(450.f, 0.f);
     text_2.setString("High score  " + high_s);
+    music.play();
 
     while (window.isOpen())
     {
@@ -413,6 +434,7 @@ int main()
                 // being able to press space  for jumping as long as you dont lose
                 if(event.key.code==sf::Keyboard::Key::Space && lost == false)
                 {
+                    //sound.play();
                     space_clicked = true;
                     player.stop_gravity();
                     player.Speed_+=sf::Vector2f(0,-350);
@@ -491,10 +513,23 @@ int main()
                 }
             }
         }
+//        if(event.key.code==sf::Keyboard::Key::Space&& lost == false){
+//            if(sound.play())
+//                return 0 ;
+//            else
+//            sound.play();
+        //playMusicForFiveSeconds();
+
+
+
+        //sound.getLoop();
+        //sound.play();
         window.draw(player);
         window.draw(text);
         window.draw(text_2);
+        //playMusicForFiveSeconds();
         window.display();
+
     }
 
     return 0;

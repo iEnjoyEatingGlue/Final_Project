@@ -101,7 +101,7 @@ compiler_clean:
 
 ####### Compile
 
-release/main.o: ../Final_Project/main.cpp C:/SFML-2.5.1/include/SFML/Window.hpp \
+release/main.o: ../Final_Project/main.cpp C:/SFML-2.5.1/include/SFML/Audio.hpp \
 		C:/SFML-2.5.1/include/SFML/System.hpp \
 		C:/SFML-2.5.1/include/SFML/Config.hpp \
 		C:/SFML-2.5.1/include/SFML/System/Clock.hpp \
@@ -128,6 +128,23 @@ release/main.o: ../Final_Project/main.cpp C:/SFML-2.5.1/include/SFML/Window.hpp 
 		C:/SFML-2.5.1/include/SFML/System/Vector2.inl \
 		C:/SFML-2.5.1/include/SFML/System/Vector3.hpp \
 		C:/SFML-2.5.1/include/SFML/System/Vector3.inl \
+		C:/SFML-2.5.1/include/SFML/Audio/InputSoundFile.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/Export.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/Listener.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/Music.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/SoundStream.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/SoundSource.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/AlResource.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/OutputSoundFile.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/Sound.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/SoundBuffer.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/SoundBufferRecorder.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/SoundRecorder.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/SoundFileFactory.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/SoundFileFactory.inl \
+		C:/SFML-2.5.1/include/SFML/Audio/SoundFileReader.hpp \
+		C:/SFML-2.5.1/include/SFML/Audio/SoundFileWriter.hpp \
+		C:/SFML-2.5.1/include/SFML/Window.hpp \
 		C:/SFML-2.5.1/include/SFML/Window/Clipboard.hpp \
 		C:/SFML-2.5.1/include/SFML/Window/Export.hpp \
 		C:/SFML-2.5.1/include/SFML/Window/Context.hpp \
