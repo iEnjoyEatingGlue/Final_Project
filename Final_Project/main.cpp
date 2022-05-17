@@ -384,7 +384,7 @@ int main()
         {
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Gravity(time);
-            if(point_i < 0)                            //Score Counter
+            if(point_i < 0)                            //highscore Counter
             {
                 text.setString("0");
                 text_2.setString("0");
