@@ -77,7 +77,7 @@ public:
         setPosition(Position_x,Position_y - 150);
         setScale(0.4f,0.35f);
     }
-    void animate(const sf::Time &elapsed)
+    void animate(float Time)
     {
         /* moves pipe to the left, and if pipes right bound is smaller than windows left bound,
         pipe is moved, so that its left bound is bigger than windows right bound, so it will be animated again*/
@@ -86,22 +86,34 @@ public:
         bound_right = bound.left + bound.width;
         if(bound_right + 210 <= 0)
         {
+            crossed_changer();
             move(1210,0);
         }
-        Time = elapsed.asSeconds();
         move(Speed_x*Time,0);
+    }
+
+    void crossed_changer()
+    {
+        crossed = !crossed;
+    }
+
+    bool crossed_return()
+    {
+        return crossed;
     }
 
 private:
     float Position_x = 0.f;
     float Position_y = 0.f;
     float Speed_x = 0.f;
-    float Time = 0.f;
+    float time;
 
     float bound_top = 0.f;
     float bound_bottom = 0.f;
     float bound_left = 0.f;
     float bound_right = 0.f;
+
+    bool crossed = false;
 };
 
 class Start: public sf::Sprite
@@ -127,7 +139,7 @@ void random_at_start(std::vector<Pipe> &vec)
 
 void random(std::vector<Pipe> &vec)
 {
-    int a = rand() % 240 - 120;
+    int a = rand() % 260 - 130;
     auto top = vec[0].getGlobalBounds();
     auto pos_0 = vec[0].getPosition();
     auto pos_1 = vec[0].getPosition();
@@ -138,16 +150,17 @@ void random(std::vector<Pipe> &vec)
     }
 }
 
-void Points(int *point,std::vector<std::vector<Pipe>> all_pipes)
+void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
 {
     for(auto &i: all_pipes)
     {
         for(auto &a: i)
         {
             sf::FloatRect a_bounds = a.getGlobalBounds();
-            if(a_bounds.left + a_bounds.width < 100 && a_bounds.left + a_bounds.width > 99)
+            if(a_bounds.left + a_bounds.width < 100 && a.crossed_return() == false)
             {
                 *point = *point + 1;
+                a.crossed_changer();
                 std::cout << *point << std::endl;
             }
             else
@@ -159,6 +172,7 @@ void Points(int *point,std::vector<std::vector<Pipe>> all_pipes)
 
 int main()
 {
+    float dt = 0;
     bool space_clicked = false;
     std::string points_s = "0";
     int point_i = 0;
@@ -266,35 +280,44 @@ int main()
 
     sf::Text text;
     text.setFont(MyFont);
-    text.setColor(sf::Color::White);
     text.setOutlineThickness(2);
     text.setOutlineColor(sf::Color::Black);
     text.setScale(2.f, 2.f);
     text.move(20.f, 0.f);
     text.setString(points_s);
 
-
-    sf:: Event event ;
     while (window.isOpen())
 
     {
 
         Points(&point_i,all_pipes);
-        std::cout << point_i << std::endl;
-        text.setString(points_s);
         sf::Time elapsed = clock.restart();
+        float time = elapsed.asSeconds();
+        points_s = std::to_string(point_i/2);
+
 
         for(auto &s : spritesToDraw)
             s->ContinousAnimation(elapsed,s->Speed_);
 
         if(space_clicked == false)
         {
+
             player.move(0,0);
         }
         else
         {
+//            dt = dt + time;
+//            point_i = dt/2.f - 2;
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Gravity(elapsed);
+            if(point_i < 0)
+            {
+                text.setString("0");
+            }
+            else
+            {
+                text.setString(points_s);
+            }
         }
 
 
@@ -350,7 +373,7 @@ int main()
                 random(i);
                 for(auto &a: i)
                 {
-                    a.animate(elapsed);
+                    a.animate(time);
                     window.draw(a);
                 }
             }
