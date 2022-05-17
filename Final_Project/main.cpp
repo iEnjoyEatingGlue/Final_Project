@@ -58,12 +58,12 @@ public:
     {
         setScale(2,2);
     }
-    void Set_Position(int pos_x, int pos_y)
+    void Set_Position(int pos_x, int pos_y)   // Birds position
     {
         setPosition(pos_x,pos_y);
     }
 
-    void Gravity(float time)
+    void Gravity(float time)      // Gravity
     {
         Speed_.y+=800*time;
     }
@@ -207,7 +207,7 @@ void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
     }
 }
 
-// checks if player intersects with piepes
+// checks if player intersects with pipes
 bool Intersectcion(Pipe pipe,Bird player)
 {
     bool x = false;
@@ -238,10 +238,11 @@ int main()
     std::string high_s = "0";
     int high_i = 0;
     int point_i = 0;
-
+        //creating window
     std::vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
     sf::RenderWindow window(sf::VideoMode(900, 504), "Flappy bird");
 
+    // creating background
     sf::Texture texture_background;
     if(!texture_background.loadFromFile("background.png")) { return 1; };
     AnimatedAssets background_1(0,-0.02,&texture_background);
@@ -254,17 +255,8 @@ int main()
 
     //creating background
 
-    sf::Texture back_tex;
-    if (!back_tex.loadFromFile("background.png")) {
-        std::cerr << "Could not load texture" << std::endl;
-        return 1;
-    }
 
-    sf::Sprite background;
-    background.setTexture(back_tex);
-    float scalex = (float) window.getSize().x/back_tex.getSize().x;
-    float scaley =(float) window.getSize().y/back_tex.getSize().y;
-    background.setScale(scalex, scaley);
+
 
     //PLAYER
     Bird player(sf::Vector2f(100,window.getSize().y/2),sf::Vector2f(0,0));
@@ -282,8 +274,7 @@ int main()
         std::cerr << "Could not load texture" << std::endl;
         return 1;
     }
-    //vector that will contain all the pipes
-    std::vector<sf::Sprite>pipes;
+
 
     //creating pipes
     sf::Texture texture_pipe_top;
@@ -317,7 +308,7 @@ int main()
     combined_4.emplace_back(pipe_top_4);
     combined_4.emplace_back(pipe_bot_4);
 
-    std::vector<std::vector<Pipe>> all_pipes;
+    std::vector<std::vector<Pipe>> all_pipes;     //vector that combines all the pipes
 
     all_pipes.emplace_back(combined_1);
     all_pipes.emplace_back(combined_2);
@@ -384,16 +375,16 @@ int main()
         for(auto &s : spritesToDraw)
             s->ContinousAnimation(elapsed,s->Speed_);
 
-        if(space_clicked == false)
+        if(space_clicked == false)  //not starting the game until you press space
         {
 
             player.move(0,0);
         }
-        else if(lost == false)
+        else if(lost == false)  //being able to complete the game as long as you didnt lose
         {
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Gravity(time);
-            if(point_i < 0)
+            if(point_i < 0)                            //Score Counter
             {
                 text.setString("0");
                 text_2.setString("0");
@@ -419,6 +410,7 @@ int main()
                 {
                     window.close();
                 }
+                // being able to press space  for jumping as long as you dont lose
                 if(event.key.code==sf::Keyboard::Key::Space && lost == false)
                 {
                     space_clicked = true;
@@ -427,7 +419,7 @@ int main()
                 }
             }
             // resets game state
-            if(event.type == sf::Event::MouseButtonPressed)
+            if(event.type == sf::Event::MouseButtonPressed)    // Restarting the game by pressing on restart
             {
                 if(event.mouseButton.button == sf::Mouse::Left && restart.isClicked(position) == true)
                 {
@@ -450,18 +442,18 @@ int main()
         }
         // drawing stuff
         window.clear(sf::Color::Black);
-        for(auto &i: backgrounds)
+        for(auto &i: backgrounds)       // background animations
         {
             i.animate();
             window.draw(i);
         }
 
 
-        if(space_clicked == false)
+        if(space_clicked == false)     // drawing press space to start
         {
             window.draw(start);
         }
-        else if(lost == true)
+        else if(lost == true)         // options after losing
         {
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Falling(70,time);
@@ -477,7 +469,7 @@ int main()
         }
         else
         {
-            for(auto &i: all_pipes)
+            for(auto &i: all_pipes)      // randomizing the pipes
             {
                 random(i);
                 for(auto &a: i)
@@ -489,7 +481,7 @@ int main()
         }
 
 
-        for(auto &i: all_pipes)
+        for(auto &i: all_pipes)      // collision for pipes
         {
             for(auto &a: i)
             {
