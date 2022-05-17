@@ -329,6 +329,7 @@ int main()
         random_at_start(i);
     }
 
+    //press sapce, restart and game over sprites
     sf::Texture texture_start;
     if(!texture_start.loadFromFile("start.png")) { return 1; };
     Start_End start(&texture_start,250,100,0.60,0.60);
@@ -361,8 +362,8 @@ int main()
     text_2.setOutlineThickness(2);
     text_2.setOutlineColor(sf::Color::Black);
     text_2.setScale(2.f, 2.f);
-    text_2.move(400.f, 0.f);
-    text_2.setString("High score " + high_s);
+    text_2.move(450.f, 0.f);
+    text_2.setString("High score  " + high_s);
 
     while (window.isOpen())
     {
@@ -403,7 +404,6 @@ int main()
                 text_2.setString("High score " + high_s);
             }
         }
-
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -426,7 +426,7 @@ int main()
                     player.Speed_+=sf::Vector2f(0,-350);
                 }
             }
-            // setting the space as the jumping button
+            // resets game state
             if(event.type == sf::Event::MouseButtonPressed)
             {
                 if(event.mouseButton.button == sf::Mouse::Left && restart.isClicked(position) == true)
