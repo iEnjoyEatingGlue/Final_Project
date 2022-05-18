@@ -59,12 +59,16 @@ public:
     {
         setScale(2,2);
     }
-    void Set_Position(int pos_x, int pos_y)   // Birds position
+    void Set_Position(int pos_x, int pos_y)
     {
         setPosition(pos_x,pos_y);
     }
 
+
     void Gravity(float time)    //// Gravity
+
+
+
     {
         Speed_.y+=800*time;
     }
@@ -308,7 +312,8 @@ int main()
         std::cerr << "Could not load texture" << std::endl;
         return 1;
     }
-
+    //vector that will contain all the pipes
+    std::vector<sf::Sprite>pipes;
 
     //creating pipes
     sf::Texture texture_pipe_top;
@@ -343,6 +348,9 @@ int main()
     combined_4.emplace_back(pipe_bot_4);
 
     std::vector<std::vector<Pipe>> all_pipes;   // vector that will contain all the pipes
+
+
+
 
     all_pipes.emplace_back(combined_1);
     all_pipes.emplace_back(combined_2);
@@ -389,8 +397,12 @@ int main()
     text_2.setScale(2.f, 2.f);
     text_2.move(450.f, 0.f);
 
+
     text_2.setString("High score  " + high_s);
     music.play();
+
+    text_2.setString("High score " + high_s);
+
 
     text_2.setString("High score " + high_s);
 
@@ -418,12 +430,16 @@ int main()
         for(auto &s : spritesToDraw)
             s->ContinousAnimation(elapsed,s->Speed_);
 
+
         if(space_clicked == false)    //not starting the game until you press space
+
+
+
         {
 
             player.move(0,0);
         }
-        else if(lost == false)  //being able to complete the game as long as you didnt lose
+        else if(lost == false)
         {
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Gravity(time);
@@ -457,7 +473,6 @@ int main()
                 {
                     window.close();
                 }
-                // being able to press space  for jumping as long as you dont lose
                 if(event.key.code==sf::Keyboard::Key::Space && lost == false)
                 {
                     //sound.play();
@@ -467,7 +482,11 @@ int main()
                 }
             }
             // resets game state
+
             if(event.type == sf::Event::MouseButtonPressed)      //// Restarting the game by pressing on restart
+
+
+
             {
                 if(event.mouseButton.button == sf::Mouse::Left && restart.isClicked(position) == true)
                 {
@@ -491,11 +510,16 @@ int main()
         }
         // drawing stuff
         window.clear(sf::Color::Black);
+
         for(auto &i: backgrounds)       //// background animations
+
+
+
         {
             i.animate();
             window.draw(i);
         }
+
 
 
         if(space_clicked == false)   // drawing press space to start
@@ -503,6 +527,9 @@ int main()
             window.draw(start);
         }
         else if(lost == true)        //// options after losing
+
+
+
         {
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Falling(70,time);
@@ -519,7 +546,11 @@ int main()
         }
         else
         {
+
             for(auto &i: all_pipes)      //// randomizing the pipes
+
+
+
             {
                 random(i);
                 for(auto &a: i)
@@ -531,7 +562,11 @@ int main()
         }
 
 
+
         for(auto &i: all_pipes)        //// collision for pipes
+
+
+
         {
             for(auto &a: i)
             {

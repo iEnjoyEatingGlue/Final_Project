@@ -2,9 +2,7 @@
 #include <vector>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
-using namespace std;
 
-//niubiuvbyuivuyvuyvutvutgvuyv
 
 class AnimatedAssets: public sf::Sprite
 {
@@ -34,8 +32,6 @@ public:
         move(Speed_x,0);
     }
 
-
-
 public:
     float TopScr,BttScr,LftScr,RgtScr,t_,b_,l_,r_;
     sf::Vector2f Speed_;        //ALL OBJECTS USE THIS SPEED
@@ -58,18 +54,38 @@ class Bird: public AnimatedAssets
 {
 public:
     Bird(sf::Vector2f pos, sf::Vector2f speed):
-        AnimatedAssets(sf::Vector2f(0.1,0.1), pos, speed){}
-
-    void Gravity(sf::Time elapsed)
+        AnimatedAssets(sf::Vector2f(1,1), pos, speed)
     {
-
-
-        Speed_.y+=400*elapsed.asSeconds();
-
+        setScale(2,2);
+    }
+    void Set_Position(int pos_x, int pos_y)
+    {
+        setPosition(pos_x,pos_y);
     }
 
-
+    void Gravity(float time)
+    {
+        Speed_.y+=800*time;
+    }
+    void stop_gravity()
+    {
+        if(Speed_.y > 0)
+            Speed_.y = 0;
+    }
+    void Falling(float rot,float time)
+    {
+        dt = dt + time;
+        Gravity(time);
+        setRotation(rot*dt);
+    }
+    void Dt_reset()
+    {
+        dt = 0;
+    }
+private:
+    float dt = 0;
 };
+
 class Pipe: public sf::Sprite
 {
 public:
@@ -77,43 +93,164 @@ public:
     {
         setTexture(*texture);
         setPosition(Position_x,Position_y);
-        setTextureRect(sf::IntRect(0, 0, 280, 2000));
         setScale(0.4f,0.35f);
     }
-    void animate(const sf::Time &elapsed)
+    void animate(float Time)
     {
         /* moves pipe to the left, and if pipes right bound is smaller than windows left bound,
         pipe is moved, so that its left bound is bigger than windows right bound, so it will be animated again*/
-
         auto bound = getGlobalBounds();
         bound_right = bound.left + bound.width;
         if(bound_right + 210 <= 0)
         {
+            crossed = false;
             move(1210,0);
         }
-        Time = elapsed.asSeconds();
         move(Speed_x*Time,0);
     }
+    void Set_crossed_false()
+    {
+        crossed = false;
+    }
+
+    bool crossed_return()
+    {
+        return crossed;
+    }
+    void Set_crossed_true()
+    {
+        crossed = true;
+    }
+    void Move_back()
+    {
+        auto pos = getPosition();
+        setPosition(Position_x ,pos.y);
+    }
+
 private:
     float Position_x = 0.f;
     float Position_y = 0.f;
     float Speed_x = 0.f;
-    float Time = 0.f;
+    float time;
 
     float bound_top = 0.f;
     float bound_bottom = 0.f;
     float bound_left = 0.f;
     float bound_right = 0.f;
+
+    bool crossed = false;
 };
+
+class Start_End: public sf::Sprite
+{
+public:
+    Start_End(sf::Texture *texture,float x_pos, float y_pos, float x_scale, float y_scale):X_pos(x_pos), Y_pos(y_pos), X_scale(x_scale),Y_scale(y_scale)
+    {
+        setTexture(*texture);
+        setPosition(X_pos,Y_pos);
+        setScale(X_scale,Y_scale);
+    }
+    bool isClicked(sf::Vector2i &mouse_position) const
+    {
+        bool a = false;
+        sf::FloatRect rectangle_bounds = getGlobalBounds();
+            if(rectangle_bounds.top < mouse_position.y && mouse_position.y < rectangle_bounds.top + rectangle_bounds.height
+                    && rectangle_bounds.left < mouse_position.x && mouse_position.x < rectangle_bounds.left + rectangle_bounds.width)
+            {
+                a = true;
+            }
+        return (a);
+    }
+private:
+    float X_pos = 0;
+    float Y_pos = 0;
+    float X_scale = 0;
+    float Y_scale = 0;
+};
+//randomises localisation of gaps between pipes at start
+void random_at_start(std::vector<Pipe> &vec)
+{
+    int a = rand() % 240 - 120;
+    auto pos_0 = vec[0].getPosition();
+    auto pos_1 = vec[0].getPosition();
+        vec[0].setPosition(pos_0.x,-330+ a);
+        vec[1].setPosition(pos_1.x,330+ a);
+}
+
+//randomises localisation of gaps between pipes after every relocation to the right
+void random(std::vector<Pipe> &vec)
+{
+    int a = rand() % 240 - 120;
+    auto top = vec[0].getGlobalBounds();
+    auto pos_0 = vec[0].getPosition();
+    auto pos_1 = vec[0].getPosition();
+    if(top.left + top.width + 210 <= 0)
+    {
+        vec[0].setPosition(pos_0.x,-330 + a);
+        vec[1].setPosition(pos_1.x,330 + a);
+    }
+}
+// updates point_i variable from main after pipe crosses player
+void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
+{
+    for(auto &i: all_pipes)
+    {
+        for(auto &a: i)
+        {
+            sf::FloatRect a_bounds = a.getGlobalBounds();
+            if(a_bounds.left + a_bounds.width < 100.0 && a.crossed_return() == false)
+            {
+                std::cout << "works 3" << std::endl;
+                *point = *point + 1;
+                std::cout << *point << std::endl;
+                a.Set_crossed_true();
+            }
+            else
+            {
+            }
+        }
+    }
+}
+
+// checks if player intersects with piepes
+bool Intersectcion(Pipe pipe,Bird player)
+{
+    bool x = false;
+
+    auto player_bounds = player.getGlobalBounds();
+    auto pipe_bounds = pipe.getGlobalBounds();
+    if(player_bounds.intersects(pipe_bounds))
+    {
+        x = true;
+    }
+    else if(player_bounds.top <= 0 || player_bounds.top + player_bounds.height >= 900)
+    {
+       x = true;
+    }
+    else
+    {
+        x = false;
+    }
+    return x;
+}
+
+
 int main()
 {
-    vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
-    sf::RenderWindow window(sf::VideoMode(900, 504), "My window");
+    bool space_clicked = false;
+    bool lost = false;
+    std::string points_s = "0";
+    std::string high_s = "0";
+    int high_i = 0;
+    int point_i = 0;
+
+    std::vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
+    sf::RenderWindow window(sf::VideoMode(900, 504), "Flappy bird");
 
     sf::Texture texture_background;
     if(!texture_background.loadFromFile("background.png")) { return 1; };
-    AnimatedAssets background_1(0,-0.01,&texture_background);
-    AnimatedAssets background_2(900,-0.01,&texture_background);
+    AnimatedAssets background_1(0,-0.02,&texture_background);
+    AnimatedAssets background_2(900,-0.02,&texture_background);
 
     std::vector<AnimatedAssets> backgrounds;
     backgrounds.emplace_back(background_1);
@@ -141,33 +278,32 @@ int main()
         std::cerr << "Could not load texture" << std::endl;
     player.setTexture(bird);
 
-
-
     sf::Sprite birds;
+    player.setPosition(100,200);
 
     //loading pipes
     sf::Texture pip;
-    if (!pip.loadFromFile("pipe.png")) {
+    if (!pip.loadFromFile("pipe_bot.png")) {
         std::cerr << "Could not load texture" << std::endl;
         return 1;
     }
     //vector that will contain all the pipes
-    vector<sf::Sprite>pipes;
+    std::vector<sf::Sprite>pipes;
 
     //creating pipes
     sf::Texture texture_pipe_top;
-    if(!texture_pipe_top.loadFromFile("pipe_top.png")) { return 1; };
-    Pipe pipe_top_1(900,0,-150,&texture_pipe_top);
-    Pipe pipe_top_2(1200,0,-150,&texture_pipe_top);
-    Pipe pipe_top_3(1500,0,-150,&texture_pipe_top);
-    Pipe pipe_top_4(1800,0,-150,&texture_pipe_top);
+    if(!texture_pipe_top.loadFromFile("pipe_top_test.png")) { return 1; };
+    Pipe pipe_top_1(900,-3000,-150,&texture_pipe_top);
+    Pipe pipe_top_2(1200,-3000,-150,&texture_pipe_top);
+    Pipe pipe_top_3(1500,-3000,-150,&texture_pipe_top);
+    Pipe pipe_top_4(1800,-3000,-150,&texture_pipe_top);
 
     sf::Texture texture_pipe_bot;
-    if(!texture_pipe_bot.loadFromFile("pipe.png")) { return 1; };
-    Pipe pipe_bot_1(900,300,-150,&texture_pipe_bot);
-    Pipe pipe_bot_2(1200,300,-150,&texture_pipe_bot);
-    Pipe pipe_bot_3(1500,300,-150,&texture_pipe_bot);
-    Pipe pipe_bot_4(1800,300,-150,&texture_pipe_bot);
+    if(!texture_pipe_bot.loadFromFile("pipe_bot_test.png")) { return 1; };
+    Pipe pipe_bot_1(900,1200,-150,&texture_pipe_bot);
+    Pipe pipe_bot_2(1200,1200,-150,&texture_pipe_bot);
+    Pipe pipe_bot_3(1500,1200,-150,&texture_pipe_bot);
+    Pipe pipe_bot_4(1800,1200,-150,&texture_pipe_bot);
 
     std::vector<Pipe> combined_1;
     std::vector<Pipe> combined_2;
@@ -193,19 +329,94 @@ int main()
     all_pipes.emplace_back(combined_3);
     all_pipes.emplace_back(combined_4);
 
+    for(auto &i: all_pipes)
+    {
+        random_at_start(i);
+    }
 
-//ascasnCKOPADNCOAK;SNCKL;SAcnasKL;CNKL;ASc
-    sf:: Event event ;
+    //press space, restart and game over sprites
+    sf::Texture texture_start;
+    if(!texture_start.loadFromFile("start.png")) { return 1; };
+    Start_End start(&texture_start,250,100,0.60,0.60);
+
+    sf::Texture texture_end;
+    if(!texture_end.loadFromFile("end.png")) { return 1; };
+    Start_End end(&texture_end,250,50,0.8,0.8);
+
+    sf::Texture texture_restart;
+    if(!texture_restart.loadFromFile("restart.png")) { return 1; };
+    Start_End restart(&texture_restart,50,100,0.2,0.2);
+
+    //creating font
+    sf::Font MyFont;
+    if (!MyFont.loadFromFile("pixel_font.ttf"))
+    {
+        std::cout << "nie działa :(";
+    }
+    //Point font
+    sf::Text text;
+    text.setFont(MyFont);
+    text.setOutlineThickness(2);
+    text.setOutlineColor(sf::Color::Black);
+    text.setScale(2.f, 2.f);
+    text.move(20.f, 0.f);
+    text.setString(points_s);
+
+    sf::Text text_2;
+    text_2.setFont(MyFont);
+    text_2.setOutlineThickness(2);
+    text_2.setOutlineColor(sf::Color::Black);
+    text_2.setScale(2.f, 2.f);
+    text_2.move(450.f, 0.f);
+    text_2.setString("High score " + high_s);
+
     while (window.isOpen())
     {
+        //Points counter
         sf::Time elapsed = clock.restart();
+        float time = elapsed.asSeconds();
+
+        sf::Vector2i position = sf::Mouse::getPosition(window);
+
+        Points(&point_i,all_pipes);
+        if(point_i % 2 != 0 && point_i != 1)
+        {
+            point_i = point_i + 1;
+        }
+        points_s = std::to_string(point_i/2);
+        if(point_i > high_i && lost == false)
+        {
+            high_i = point_i;
+        }
+        high_s = std::to_string(high_i/2);
 
         for(auto &s : spritesToDraw)
             s->ContinousAnimation(elapsed,s->Speed_);
-       // player.getExteriorBounds(0, window.getSize().x, 0, window.getSize().y);
-        player.move(0,player.Speed_.y*elapsed.asSeconds());
-        player.Gravity(elapsed);
-         //if(player.top<=0 || rectangle_bounds.top+rectangle_bounds.height>=window.getSize().y)
+
+        if(space_clicked == false)
+        {
+
+            player.move(0,0);
+        }
+        else if(lost == false)
+        {
+            player.move(0,player.Speed_.y*elapsed.asSeconds());
+            player.Gravity(time);
+            if(point_i < 0)
+            {
+                text.setString("0");
+                text_2.setString("0");
+            }
+            if(point_i == 1)
+            {
+                text.setString("1");
+            }
+            else
+            {
+                text.setString(points_s);
+                text_2.setString("High score " + high_s);
+            }
+        }
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -215,50 +426,98 @@ int main()
                 window.close();
 
             // close game when esc is pressed
-
             if(event.type==sf::Event::KeyReleased)
             {
                 if(event.key.code==sf::Keyboard::Key::Escape)
                 {
                     window.close();
                 }
+                if(event.key.code==sf::Keyboard::Key::Space && lost == false)
+                {
+                    space_clicked = true;
+                    player.stop_gravity();
+                    player.Speed_+=sf::Vector2f(0,-350);
+                }
             }
-            // setting the mouse left click as the jumping button
-
+            // resets game state
             if(event.type == sf::Event::MouseButtonPressed)
             {
-                if(event.mouseButton.button == sf::Mouse::Left)
+                if(event.mouseButton.button == sf::Mouse::Left && restart.isClicked(position) == true)
                 {
-                    player.Speed_+=sf::Vector2f(0,-250);
+                    lost = false;
+                    space_clicked = false;
+                    player.setPosition(100,200);
+                    player.stop_gravity();
+                    player.Falling(0,time);
+                    player.Dt_reset();
+                    point_i = 0;
+                    for(auto &i: all_pipes)
+                    {
+                        for(auto &a: i)
+                        {
+                            a.Set_crossed_false();
+                            a.Move_back();
+                        }
+                    }
                 }
-
             }
         }
-    // drawing stuff
+        // drawing stuff
         window.clear(sf::Color::Black);
         for(auto &i: backgrounds)
         {
             i.animate();
             window.draw(i);
         }
+
+
+        if(space_clicked == false)
+        {
+            window.draw(start);
+        }
+        else if(lost == true)
+        {
+            player.move(0,player.Speed_.y*elapsed.asSeconds());
+            player.Falling(70,time);
+            for(auto &i: all_pipes)
+            {
+                for(auto &a: i)
+                {
+                    a.Set_crossed_false();
+                    window.draw(a);
+                }
+            }
+            window.draw(restart);
+            window.draw(end);
+        }
+        else
+        {
+            for(auto &i: all_pipes)
+            {
+                random(i);
+                for(auto &a: i)
+                {
+                    a.animate(time);
+                    window.draw(a);
+                }
+            }
+        }
+
+
         for(auto &i: all_pipes)
         {
             for(auto &a: i)
             {
-                a.animate(elapsed);
-                window.draw(a);
+                if(Intersectcion(a,player) == true)
+                {
+                    lost = true;
+                }
             }
         }
-        auto a = pipe_top_1.getGlobalBounds();
-
-
-
-         window.draw(player);
+        window.draw(player);
+        window.draw(text);
+        window.draw(text_2);
         window.display();
-
     }
-
-    window.clear(sf::Color::Black);
-
     return 0;
 }
