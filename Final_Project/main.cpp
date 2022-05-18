@@ -369,11 +369,11 @@ int main()
 
     sf::Texture texture_end;
     if(!texture_end.loadFromFile("end.png")) { return 1; };
-    Start_End end(&texture_end,250,50,0.8,0.8);
+    Start_End end(&texture_end,200,50,0.8,0.8);
 
     sf::Texture texture_restart;
     if(!texture_restart.loadFromFile("restart.png")) { return 1; };
-    Start_End restart(&texture_restart,50,100,0.2,0.2);
+    Start_End restart(&texture_restart,200,350,0.49,0.4);
 
     //creating font
     sf::Font MyFont;
