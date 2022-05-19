@@ -83,6 +83,13 @@ public:
         Gravity(time);
         setRotation(rot*dt);
     }
+    bool falling(float rot,float time)
+    {
+        dt = dt + time;
+        Gravity(time);
+        setRotation(rot*dt);
+        return true;
+    }
     void Dt_reset()
     {
         dt = 0;
@@ -238,18 +245,56 @@ bool Intersectcion(Pipe pipe,Bird player)
     }
     return x;
 }
-bool playMusicForFiveSeconds(){       // if i want to play a music for 5 seconds
-    sf::Music music;
-    if (!music.openFromFile("file_example_OOG_1MG.ogg"))
-        return false;
-    music.setVolume(50);
-    music.play();
-    sf::sleep(sf::seconds(5.0f));
-    return true;
-    // since music is a local variable, it is destroyed here (thus stopping playback)
-}
+class SoundManager {
+public:
+    SoundManager(){
+        if (!sb_jump.loadFromFile("jumpingsound.wav")) {
+            std::cout << "ERROR: sounds didn't load" << std::endl;
+        } else {
+            s_jump.setBuffer(sb_jump);
+        }
 
+        if (!sb_freefall.loadFromFile("losingsound.wav"))
+            std::cout << "ERROR: sounds didn't load" << std::endl;
+        else{
+            s_freefall.setBuffer(sb_freefall);
+        }
+        if(!bcgm.openFromFile("file_example_OOG_1MG.ogg")){
+            std::cout<<"ERROR: sounds didn't open"<<std::endl;
 
+        }
+    }
+
+    void jump() {
+        s_jump.play();
+    }
+
+    void freefall() {
+        s_freefall.play();
+    }
+    void music(){
+        bcgm.setVolume(30);
+        bcgm.play();
+    }
+    bool playMusicForFiveSeconds(){       // if i want to play a music for 5 seconds
+        sf::Music music;
+        if (!music.openFromFile("mixkit-player-jumping-in-a-video-game-2043.wav"))
+            return false;
+        music.setVolume(50);
+        music.play();
+        sf::sleep(sf::seconds(0.3));
+        return true;
+        // since music is a local variable, it is destroyed here (thus stopping playback)
+    }
+
+private:
+    sf::SoundBuffer sb_jump;
+    sf::Sound s_jump;
+    sf::SoundBuffer sb_freefall;
+    sf::Sound s_freefall;
+    sf::Music bcgm;
+
+};
 int main()
 {
     bool space_clicked = false;
@@ -258,7 +303,7 @@ int main()
     std::string high_s = "0";
     int high_i = 0;
     int point_i = 0;
-
+    SoundManager sounds;
     std::vector<std::unique_ptr<AnimatedAssets>> spritesToDraw;
     sf::RenderWindow window(sf::VideoMode(900, 504), "Flappy bird");
 
@@ -273,16 +318,7 @@ int main()
     sf::Clock clock;
 
     //creating background
-    sf::Music music ;
-    sf::SoundBuffer buffer;
-    if (!buffer.loadFromFile("mixkit-player-jumping-in-a-video-game-2043.wav"))    // loading jumping sound effect
-        std::cerr << "Could not load audio" << std::endl;
-    sf::Sound sound;
-    sound.setBuffer(buffer);
-    if(!music.openFromFile("file_example_OOG_1MG.ogg"))       // loading background music
-        std::cerr << "Could not load audio" << std::endl;
-    music.setVolume(50);   //setting volume and playing music
-    music.play();
+
 
     sf::Texture back_tex;
     if (!back_tex.loadFromFile("background.png")) {
@@ -290,11 +326,7 @@ int main()
         return 1;
     }
 
-    sf::Sprite background;
-    background.setTexture(back_tex);
-    float scalex = (float) window.getSize().x/back_tex.getSize().x;
-    float scaley =(float) window.getSize().y/back_tex.getSize().y;
-    background.setScale(scalex, scaley);
+
 
     //PLAYER
     Bird player(sf::Vector2f(100,window.getSize().y/2),sf::Vector2f(0,0));
@@ -399,7 +431,6 @@ int main()
 
 
     text_2.setString("High score  " + high_s);
-    music.play();
 
     text_2.setString("High score " + high_s);
 
@@ -433,10 +464,8 @@ int main()
 
         if(space_clicked == false)    //not starting the game until you press space
 
-
-
         {
-
+            sounds.music();
             player.move(0,0);
         }
         else if(lost == false)
@@ -531,8 +560,11 @@ int main()
 
 
         {
+
+            sounds.music();
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Falling(70,time);
+
             for(auto &i: all_pipes)
             {
                 for(auto &a: i)
@@ -573,12 +605,16 @@ int main()
                 if(Intersectcion(a,player) == true)
                 {
                     lost = true;
+                    sounds.freefall();
+
                 }
             }
         }
+
         if(event.key.code==sf::Keyboard::Key::Space&& lost == false){       //sound effect when jumping
 
-            sound.play();
+            sounds.jump();
+
         }
 
 
