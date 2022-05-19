@@ -405,7 +405,7 @@ int main()
 
     sf::Texture texture_restart;
     if(!texture_restart.loadFromFile("restart.png")) { return 1; };
-    Start_End restart(&texture_restart,200,350,0.49,0.4);
+    Start_End restart(&texture_restart,195,350,0.49,0.4);
 
     //creating font
     sf::Font MyFont;
