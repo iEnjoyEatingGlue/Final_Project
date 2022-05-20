@@ -3,6 +3,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
+#include <random>
 
 
 class AnimatedAssets: public sf::Sprite
@@ -20,7 +21,6 @@ public:
         setTextureRect(sf::IntRect(0, 0, 900, 504));
         setPosition(Position_x,0);
     }
-
     void animate()
     {
         auto bound = getGlobalBounds();
@@ -78,13 +78,6 @@ public:
         Gravity(time);
         setRotation(rot*dt);
     }
-    bool falling(float rot,float time)
-    {
-        dt = dt + time;
-        Gravity(time);
-        setRotation(rot*dt);
-        return true;
-    }
     void Dt_reset()
     {
         dt = 0;
@@ -102,7 +95,7 @@ public:
         setPosition(Position_x,Position_y);
         setScale(0.4f,0.35f);
     }
-    void animate(float Time)
+    void animate(float Time, bool mode)
     {
         /* moves pipe to the left, and if pipes right bound is smaller than windows left bound,
         pipe is moved, so that its left bound is bigger than windows right bound, so it will be animated again*/
@@ -114,14 +107,21 @@ public:
             crossed = false;
             move(1210,0);
         }
+        if(mode == true)
+        {
+            move(Speed_x*Time,Speed_y*Time);
+        }
+        else
+        {
+            move(Speed_x*Time,0);
+        }
 
-        move(Speed_x*Time,Speed_y*Time);
+
     }
     void Set_crossed_false()
     {
         crossed = false;
     }
-
     bool crossed_return()
     {
         return crossed;
@@ -137,14 +137,14 @@ public:
     }
     void Speed_y_()
     {
-        Speed_y = Speed_y * -1.f;
+        Speed_y = Speed_y * -1;
     }
 
 private:
     float Position_x = 0.f;
     float Position_y = 0.f;
     float Speed_x = 0.f;
-    float Speed_y = 50.f;
+    float Speed_y = 30.f;
     float time;
 
     float bound_top = 0.f;
@@ -185,17 +185,29 @@ private:
 //randomises localisation of gaps between pipes at start
 void random_at_start(std::vector<Pipe> &vec)
 {
-    int a = rand() % 240 - 120;
+    int a = rand() % 249 - 124;
     auto pos_0 = vec[0].getPosition();
     auto pos_1 = vec[0].getPosition();
     vec[0].setPosition(pos_0.x,-330+ a);
     vec[1].setPosition(pos_1.x,330+ a);
 }
-
-//randomises localisation of gaps between pipes after every relocation to the right
-void random(std::vector<Pipe> &vec)
+void Random_Speed_y_(std::vector<Pipe> &com, bool mode)
 {
-    int a = rand() % 240 - 120;
+    if(mode == true)
+    {
+        int a = rand() % 2 - 1;
+        std::cout << a << std::endl;
+        if(a < 0)
+        {
+            com[0].Speed_y_();
+            com[1].Speed_y_();
+        }
+    }
+}
+//randomises localisation of gaps between pipes after every relocation to the right
+void random(std::vector<Pipe> &vec, bool mode)
+{
+    int a = rand() % 249 - 124;
     auto top = vec[0].getGlobalBounds();
     auto pos_0 = vec[0].getPosition();
     auto pos_1 = vec[0].getPosition();
@@ -203,6 +215,7 @@ void random(std::vector<Pipe> &vec)
     {
         vec[0].setPosition(pos_0.x,-330 + a);
         vec[1].setPosition(pos_1.x,330 + a);
+        Random_Speed_y_(vec,mode);
     }
 }
 // updates point_i variable from main after pipe crosses player
@@ -220,9 +233,6 @@ void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
                 std::cout << *point << std::endl;
                 a.Set_crossed_true();
             }
-            else
-            {
-            }
         }
     }
 }
@@ -232,22 +242,12 @@ void Set_y_speed(std::vector<Pipe> &com, bool mode)
     {
         auto pipe_1 = com[0].getGlobalBounds();
         auto pipe_2 = com[1].getGlobalBounds();
-        if(pipe_1.top + pipe_1.height <= 100 || pipe_2.top >= 454)
+        if(pipe_1.top + pipe_1.height <= 50 || pipe_2.top >= 454)
         {
             com[0].Speed_y_();
             com[1].Speed_y_();
         }
     }
-//        if(bound_bottom <=  100 && bound_top <= 0)
-//        {
-//            std::cout << "1";
-//            Speed_y = Speed_y*-1.f;
-//        }
-//        else if(bound_bottom >= 504 && bound_top >= 454)
-//        {
-//            std::cout << "2";
-//            Speed_y = Speed_y*-1.f;
-//        }
 }
 
 // checks if player intersects with piepes
@@ -287,14 +287,11 @@ public:
         }
         if(!bcgm.openFromFile("file_example_OOG_1MG.ogg")){
             std::cout<<"ERROR: sounds didn't open"<<std::endl;
-
         }
     }
-
     void jump() {
         s_jump.play();
     }
-
     void freefall() {
         s_freefall.play();
     }
@@ -468,15 +465,7 @@ int main()
     text_2.setOutlineColor(sf::Color::Black);
     text_2.setScale(2.f, 2.f);
     text_2.move(450.f, 0.f);
-
-
-    text_2.setString("High score  " + high_s);
-
     text_2.setString("High score " + high_s);
-
-
-    text_2.setString("High score " + high_s);
-
 
     while (window.isOpen())
     {
@@ -570,6 +559,14 @@ int main()
                         }
                     }
                 }
+                else if(event.mouseButton.button == sf::Mouse::Left && easy_not_clicked.isClicked(position) == true)
+                {
+                    hard_mode = !hard_mode;
+                }
+                else if(event.mouseButton.button == sf::Mouse::Left && hard_not_clicked.isClicked(position) == true)
+                {
+                    hard_mode = !hard_mode;
+                }
             }
         }
         // drawing stuff
@@ -580,7 +577,6 @@ int main()
             i.animate();
             window.draw(i);
         }
-
         if(space_clicked == false)   // drawing press space to start
         {
             window.draw(start);
@@ -591,12 +587,17 @@ int main()
             }
             else
             {
+                for(auto &i: all_pipes)
+                {
+                   Random_Speed_y_(i,hard_mode);
+                }
                 window.draw(easy_not_clicked);
                 window.draw(hard_clicked);
             }
         }
         else if(lost == true)        //// options after losing
         {
+            player.stop_gravity();
             sounds.music();
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Falling(70,time);
@@ -617,10 +618,10 @@ int main()
             for(auto &i: all_pipes)      //// randomizing the pipes
             {
                 Set_y_speed(i,time);
-                random(i);
+                random(i,hard_mode);
                 for(auto &a: i)
                 {
-                    a.animate(time);
+                    a.animate(time, hard_mode);
                     window.draw(a);
                 }
             }
@@ -638,18 +639,22 @@ int main()
             }
         }
 
+        if(hard_mode == true)
+        {
+            all_pipes[1][0].Move_back();
+            all_pipes[1][1].Move_back();
+            all_pipes[3][0].Move_back();
+            all_pipes[3][1].Move_back();
+        }
+
         //sound effect when jumping
         if(event.key.code==sf::Keyboard::Key::Space&& lost == false)
         {
             sounds.jump();
         }
-
-        //sound.getLoop();
-        //sound.play();
         window.draw(player);
         window.draw(text);
         window.draw(text_2);
-        //playMusicForFiveSeconds();
         window.display();
 
     }
