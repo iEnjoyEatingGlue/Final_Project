@@ -63,12 +63,7 @@ public:
     {
         setPosition(pos_x,pos_y);
     }
-
-
     void Gravity(float time)    //// Gravity
-
-
-
     {
         Speed_.y+=800*time;
     }
@@ -113,12 +108,14 @@ public:
         pipe is moved, so that its left bound is bigger than windows right bound, so it will be animated again*/
         auto bound = getGlobalBounds();
         bound_right = bound.left + bound.width;
+        bound_bottom = bound_top + bound_bottom;
         if(bound_right + 210 <= 0)
         {
             crossed = false;
             move(1210,0);
         }
-        move(Speed_x*Time,0);
+
+        move(Speed_x*Time,Speed_y*Time);
     }
     void Set_crossed_false()
     {
@@ -138,11 +135,16 @@ public:
         auto pos = getPosition();
         setPosition(Position_x ,pos.y);
     }
+    void Speed_y_()
+    {
+        Speed_y = Speed_y * -1.f;
+    }
 
 private:
     float Position_x = 0.f;
     float Position_y = 0.f;
     float Speed_x = 0.f;
+    float Speed_y = 50.f;
     float time;
 
     float bound_top = 0.f;
@@ -151,6 +153,7 @@ private:
     float bound_right = 0.f;
 
     bool crossed = false;
+    bool x = false;
 };
 
 class Start_End: public sf::Sprite
@@ -222,6 +225,29 @@ void Points(int *point,std::vector<std::vector<Pipe>> &all_pipes)
             }
         }
     }
+}
+void Set_y_speed(std::vector<Pipe> &com, bool mode)
+{
+    if(mode == true)
+    {
+        auto pipe_1 = com[0].getGlobalBounds();
+        auto pipe_2 = com[1].getGlobalBounds();
+        if(pipe_1.top + pipe_1.height <= 100 || pipe_2.top >= 454)
+        {
+            com[0].Speed_y_();
+            com[1].Speed_y_();
+        }
+    }
+//        if(bound_bottom <=  100 && bound_top <= 0)
+//        {
+//            std::cout << "1";
+//            Speed_y = Speed_y*-1.f;
+//        }
+//        else if(bound_bottom >= 504 && bound_top >= 454)
+//        {
+//            std::cout << "2";
+//            Speed_y = Speed_y*-1.f;
+//        }
 }
 
 // checks if player intersects with piepes
@@ -297,6 +323,7 @@ private:
 };
 int main()
 {
+    bool hard_mode = false;
     bool space_clicked = false;
     bool lost = false;
     std::string points_s = "0";
@@ -309,8 +336,8 @@ int main()
 
     sf::Texture texture_background;
     if(!texture_background.loadFromFile("background.png")) { return 1; };
-    AnimatedAssets background_1(0,-0.02,&texture_background);
-    AnimatedAssets background_2(900,-0.02,&texture_background);
+    AnimatedAssets background_1(0,-0.025,&texture_background);
+    AnimatedAssets background_2(900,-0.025,&texture_background);
 
     std::vector<AnimatedAssets> backgrounds;
     backgrounds.emplace_back(background_1);
@@ -381,9 +408,6 @@ int main()
 
     std::vector<std::vector<Pipe>> all_pipes;   // vector that will contain all the pipes
 
-
-
-
     all_pipes.emplace_back(combined_1);
     all_pipes.emplace_back(combined_2);
     all_pipes.emplace_back(combined_3);
@@ -406,6 +430,22 @@ int main()
     sf::Texture texture_restart;
     if(!texture_restart.loadFromFile("restart.png")) { return 1; };
     Start_End restart(&texture_restart,195,350,0.49,0.4);
+
+    sf::Texture texture_easy_clicked;
+    if(!texture_easy_clicked.loadFromFile("easy_clicked.png")) { return 1; };
+    Start_End easy_clicked(&texture_easy_clicked,50,50,2,2);
+
+    sf::Texture texture_easy_not_clicked;
+    if(!texture_easy_not_clicked.loadFromFile("easy_not_clicked.png")) { return 1; };
+    Start_End easy_not_clicked(&texture_easy_not_clicked,50,50,2,2);
+
+    sf::Texture texture_hard_clicked;
+    if(!texture_hard_clicked.loadFromFile("hard_clicked.png")) { return 1; };
+    Start_End hard_clicked(&texture_hard_clicked,50,110,2,2);
+
+    sf::Texture texture_hard_not_clicked;
+    if(!texture_hard_not_clicked.loadFromFile("hard_not_clicked.png")) { return 1; };
+    Start_End hard_not_clicked(&texture_hard_not_clicked,50,110,2,2);
 
     //creating font
     sf::Font MyFont;
@@ -461,9 +501,7 @@ int main()
         for(auto &s : spritesToDraw)
             s->ContinousAnimation(elapsed,s->Speed_);
 
-
         if(space_clicked == false)    //not starting the game until you press space
-
         {
             sounds.music();
             player.move(0,0);
@@ -513,9 +551,6 @@ int main()
             // resets game state
 
             if(event.type == sf::Event::MouseButtonPressed)      //// Restarting the game by pressing on restart
-
-
-
             {
                 if(event.mouseButton.button == sf::Mouse::Left && restart.isClicked(position) == true)
                 {
@@ -541,26 +576,27 @@ int main()
         window.clear(sf::Color::Black);
 
         for(auto &i: backgrounds)       //// background animations
-
-
-
         {
             i.animate();
             window.draw(i);
         }
 
-
-
         if(space_clicked == false)   // drawing press space to start
         {
             window.draw(start);
+            if(hard_mode == false)
+            {
+                window.draw(easy_clicked);
+                window.draw(hard_not_clicked);
+            }
+            else
+            {
+                window.draw(easy_not_clicked);
+                window.draw(hard_clicked);
+            }
         }
         else if(lost == true)        //// options after losing
-
-
-
         {
-
             sounds.music();
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Falling(70,time);
@@ -578,12 +614,9 @@ int main()
         }
         else
         {
-
             for(auto &i: all_pipes)      //// randomizing the pipes
-
-
-
             {
+                Set_y_speed(i,time);
                 random(i);
                 for(auto &a: i)
                 {
@@ -593,12 +626,7 @@ int main()
             }
         }
 
-
-
         for(auto &i: all_pipes)        //// collision for pipes
-
-
-
         {
             for(auto &a: i)
             {
@@ -606,19 +634,15 @@ int main()
                 {
                     lost = true;
                     sounds.freefall();
-
                 }
             }
         }
 
-        if(event.key.code==sf::Keyboard::Key::Space&& lost == false){       //sound effect when jumping
-
+        //sound effect when jumping
+        if(event.key.code==sf::Keyboard::Key::Space&& lost == false)
+        {
             sounds.jump();
-
         }
-
-
-
 
         //sound.getLoop();
         //sound.play();
