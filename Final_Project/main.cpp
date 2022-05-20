@@ -36,7 +36,6 @@ public:
 public:
 
     sf::Vector2f Speed_;        //ALL OBJECTS USE THIS SPEED
-
     AnimatedAssets(sf::Vector2f size, sf::Vector2f position, sf::Vector2f v)
     {
         scale(size);
@@ -44,7 +43,6 @@ public:
         Speed_=v;
 
     }
-
     void ContinousAnimation(const sf::Time &elapsed, const sf::Vector2f &speed)
     {
 
@@ -455,16 +453,16 @@ int main()
     text.setFont(MyFont);
     text.setOutlineThickness(2);
     text.setOutlineColor(sf::Color::Black);
-    text.setScale(2.f, 2.f);
-    text.move(20.f, 0.f);
+    text.setScale(1.f, 1.f);
+    text.move(20.f, 20.f);
     text.setString(points_s);
 
     sf::Text text_2;
     text_2.setFont(MyFont);
     text_2.setOutlineThickness(2);
     text_2.setOutlineColor(sf::Color::Black);
-    text_2.setScale(2.f, 2.f);
-    text_2.move(450.f, 0.f);
+    text_2.setScale(1.f, 1.f);
+    text_2.move(450.f, 20.f);
     text_2.setString("High score " + high_s);
 
     while (window.isOpen())
@@ -597,7 +595,6 @@ int main()
         }
         else if(lost == true)        //// options after losing
         {
-            player.stop_gravity();
             sounds.music();
             player.move(0,player.Speed_.y*elapsed.asSeconds());
             player.Falling(70,time);
